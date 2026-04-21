@@ -141,11 +141,24 @@ async def _sync_dataset(db: Client, ws_id: str, ds: dict, skip_ids: set) -> dict
     if ds_id in skip_ids:
         return {"name": ds_name, "status": "skipped (recent)"}
 
-    # executeQueries não suporta datasets com gateway on-premises
+    # Datasets com gateway on-premises: tenta DMV primeiro — muitos ainda suportam executeQueries
     if ds.get("isOnPremGatewayRequired"):
+        db.table("datasets").upsert(
+            {"id": ds_id, "workspace_id": ws_id, "name": ds_name,
+             "configured_by": ds.get("configuredBy"), "is_refreshable": ds.get("isRefreshable", False)},
+            on_conflict="id",
+        ).execute()
+        tables, error = await _get_schema_via_dmv(ds_id, ws_id)
+        if tables:
+            _save_tables(db, ds_id, tables)
+            _sync_flags[ds_id] = "ok"
+            db.table("datasets").update({"synced_at": datetime.now(timezone.utc).isoformat()}).eq("id", ds_id).execute()
+            print(f"[SYNC OK] {ds_name}: gateway mas executeQueries funcionou — {len(tables)} tabelas")
+            return {"name": ds_name, "status": "ok", "tables": len(tables)}
+        # executeQueries falhou — precisa de conexão direta
         _sync_flags[ds_id] = "gateway"
         _upsert_with_status(db, ds_id, ws_id, ds_name, ds, "gateway")
-        print(f"[SYNC SKIP] {ds_name}: gateway on-premises — executeQueries não suportado")
+        print(f"[SYNC SKIP] {ds_name}: gateway on-premises — executeQueries não suportado ({error})")
         return {"name": ds_name, "status": "gateway"}
 
     # executeQueries exige effectiveIdentity com roles para datasets com RLS dinâmica
