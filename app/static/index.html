@@ -1348,7 +1348,7 @@ async function sendMessage() {
   try {
     const resp = await fetch('/api/chat', {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${_authToken}`},
       body: JSON.stringify({
         question,
         dataset_id: selectedDatasetId,
