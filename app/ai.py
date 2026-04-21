@@ -34,6 +34,9 @@ Period/date filter rules (CRITICAL):
 - If column data_type is integer/int64: use Table[Col] = 202401 (no quotes)
 - If column data_type is string/text: use Table[Col] = "202401"
 - NEVER wrap a specific-period question with TOPN
+- For semester/academic period filters (e.g. "2025-1", "2024-2"): the stored value format is UNKNOWN.
+  Prefer CONTAINSSTRING for safer matching: FILTER(ALL(Table[Col]), CONTAINSSTRING(Table[Col], "2025") && CONTAINSSTRING(Table[Col], "1"))
+  OR use IN with multiple possible formats: Table[Col] IN {"2025-1", "2025/1", "20251", "1/2025"}
 
 Pattern 1 — Single value with filter:
   EVALUATE ROW("Label", CALCULATE([Measure], Table[Col] = value))

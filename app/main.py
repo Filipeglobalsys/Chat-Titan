@@ -471,6 +471,26 @@ async def _chat_handler(req: ChatRequest, user_email: str = ""):
         except Exception as e2:
             query_error = str(e2)
 
+    # Auto-retry: if query returned all zeros, period filter value may be wrong — retry without filter
+    if not query_error and rows and all(
+        all(v == 0 or v is None for v in row.values()) for row in rows
+    ):
+        try:
+            hint = (
+                "A query retornou apenas zeros. Provavelmente o filtro de período tem formato errado "
+                "(ex: o valor real pode ser '2025/1' em vez de '2025-1', ou um inteiro como 20251). "
+                "Reformule a query SEM filtro de período específico, ou use CONTAINSSTRING para busca parcial."
+            )
+            dax_retry = await fix_dax(dax, hint, req.question, schema, dataset_name)
+            rows_retry = await execute_query(req.dataset_id, dax_retry, workspace_id, eff_user, eff_role)
+            if rows_retry and any(
+                any(v not in (0, None) for v in row.values()) for row in rows_retry
+            ):
+                dax = dax_retry
+                rows = rows_retry
+        except Exception:
+            pass
+
     if query_error:
         answer = (
             f"Não foi possível executar a query mesmo após correção automática.\n\n"
