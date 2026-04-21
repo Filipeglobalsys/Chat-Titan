@@ -46,7 +46,7 @@ async def pbi_post(path: str, body: dict) -> dict:
             )
         if not resp.is_success:
             print(f"[PBI ERR] POST {path} {resp.status_code} — {resp.text}")
-        resp.raise_for_status()
+            raise Exception(f"Power BI {resp.status_code}: {resp.text}")
         return resp.json()
 
 
