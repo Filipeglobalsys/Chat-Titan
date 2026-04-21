@@ -112,11 +112,10 @@ async def execute_query(
         "queries": [{"query": dax}],
         "serializerSettings": {"includeNulls": True},
     }
-    if effective_username and effective_role:
-        body["effectiveIdentities"] = [{
-            "username": effective_username,
-            "roles": [effective_role],
-            "datasets": [dataset_id],
-        }]
+    if effective_username:
+        identity: dict = {"username": effective_username, "datasets": [dataset_id]}
+        if effective_role:
+            identity["roles"] = [effective_role]
+        body["effectiveIdentities"] = [identity]
     result = await pbi_post(path, body)
     return result.get("results", [{}])[0].get("tables", [{}])[0].get("rows", [])

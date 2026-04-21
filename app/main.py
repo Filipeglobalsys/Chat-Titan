@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI):
                 print(f"[STARTUP] Gateway restaurado para dataset {dataset_id}")
             except Exception as e:
                 print(f"[STARTUP] Erro ao restaurar gateway {dataset_id}: {e}")
-        elif cfg.get("rls_username") and cfg.get("rls_role"):
+        elif cfg.get("rls_username"):
             if dataset_id not in _sync_flags:
                 _sync_flags[dataset_id] = "rls_required"
                 print(f"[STARTUP] RLS flag restaurado para dataset {dataset_id}")
@@ -75,6 +75,7 @@ async def auth_middleware(request: Request, call_next):
         result = db.auth.get_user(token)
         if not result.user:
             return JSONResponse({"detail": "Sessão expirada"}, status_code=401)
+        request.state.user_email = result.user.email or ""
     except Exception:
         return JSONResponse({"detail": "Token inválido"}, status_code=401)
     return await call_next(request)
@@ -357,9 +358,9 @@ class ChatRequest(BaseModel):
 
 
 @app.post("/api/chat")
-async def chat(req: ChatRequest):
+async def chat(req: ChatRequest, request: Request):
     try:
-        return await _chat_handler(req)
+        return await _chat_handler(req, getattr(request.state, "user_email", ""))
     except HTTPException:
         raise
     except Exception as e:
@@ -368,7 +369,7 @@ async def chat(req: ChatRequest):
         raise HTTPException(500, f"Erro interno: {type(e).__name__}: {e}")
 
 
-async def _chat_handler(req: ChatRequest):
+async def _chat_handler(req: ChatRequest, user_email: str = ""):
     db = get_db()
 
     ds_res = db.table("datasets").select("name, workspace_id").eq("id", req.dataset_id).single().execute()
@@ -419,11 +420,14 @@ async def _chat_handler(req: ChatRequest):
     eff_user = req.effective_username
     eff_role = req.effective_role
     # Auto-load RLS creds from saved config if not provided in request
-    if not (eff_user and eff_role):
+    if not eff_user:
         saved = config_store.get_config(req.dataset_id) or {}
-        if saved.get("rls_username") and saved.get("rls_role"):
+        if saved.get("rls_username"):
             eff_user = saved["rls_username"]
-            eff_role = saved["rls_role"]
+            eff_role = saved.get("rls_role") or eff_role
+        elif not eff_user and user_email:
+            # Use logged-in user's email for datasets that require effectiveIdentity
+            eff_user = user_email
 
     rows = []
     query_error = None
