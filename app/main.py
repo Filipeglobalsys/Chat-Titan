@@ -198,8 +198,10 @@ async def list_datasets(workspace_id: str):
         if d.get("name") in ("Report Usage Metrics Model",):
             continue
         status = get_dataset_sync_status(d["id"]) or d.get("sync_status")
-        d["has_schema"] = d["id"] in ds_with_schema
-        d["is_gateway"] = status == "gateway"
+        has_schema = d["id"] in ds_with_schema
+        d["has_schema"] = has_schema
+        # If schema is already synced, dataset is queryable via DAX — never block the chat
+        d["is_gateway"] = status == "gateway" and not has_schema
         d["is_rls"] = status == "rls_required"
         result.append(d)
     return result

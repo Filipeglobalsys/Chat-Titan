@@ -152,6 +152,7 @@ async def _sync_dataset(db: Client, ws_id: str, ds: dict, skip_ids: set) -> dict
         if tables:
             _save_tables(db, ds_id, tables)
             _sync_flags[ds_id] = "ok"
+            _upsert_with_status(db, ds_id, ws_id, ds_name, ds, "ok")
             db.table("datasets").update({"synced_at": datetime.now(timezone.utc).isoformat()}).eq("id", ds_id).execute()
             print(f"[SYNC OK] {ds_name}: gateway mas executeQueries funcionou — {len(tables)} tabelas")
             return {"name": ds_name, "status": "ok", "tables": len(tables)}
