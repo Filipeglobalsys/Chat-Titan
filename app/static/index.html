@@ -1226,9 +1226,10 @@ async function loadReport() {
   selectedReportName = opt.textContent.trim();
   const wsId = selectedWorkspaceId;
   const cfg = selectedDataset?._cfg || {};
-  const rlsParams = (cfg.rls_username && cfg.rls_role && selectedDatasetId)
-    ? `?dataset_id=${encodeURIComponent(selectedDatasetId)}&username=${encodeURIComponent(cfg.rls_username)}&role=${encodeURIComponent(cfg.rls_role)}`
-    : '';
+  // Always pass dataset_id + username (even without role) so effectiveIdentity works for SSAS/gateway reports
+  let rlsParams = selectedDatasetId ? `?dataset_id=${encodeURIComponent(selectedDatasetId)}` : '';
+  if (cfg.rls_username) rlsParams += `&username=${encodeURIComponent(cfg.rls_username)}`;
+  if (cfg.rls_role)     rlsParams += `&role=${encodeURIComponent(cfg.rls_role)}`;
   const container = document.getElementById('report-container');
   const empty = document.getElementById('report-empty');
 
@@ -1259,7 +1260,12 @@ async function loadReport() {
       container.appendChild(iframe);
     }
   } catch (e) {
-    container.innerHTML = `<div style="padding:20px;color:var(--red);font-size:13px">Erro ao carregar relatório: ${escHtml(e.message)}</div>`;
+    const needsIdentity = e.message && e.message.includes('effective identity');
+    const msg = needsIdentity
+      ? 'Este relatório exige autenticação de usuário Power BI. Configure o e-mail do usuário nas configurações do dataset (ícone ⚙).'
+      : `Erro ao carregar relatório: ${escHtml(e.message)}`;
+    container.innerHTML = `<div style="padding:20px;color:var(--red);font-size:13px">${msg}</div>`;
+    if (needsIdentity) openConfigForCurrent();
   }
 }
 
