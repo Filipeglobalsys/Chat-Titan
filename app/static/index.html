@@ -1226,8 +1226,10 @@ async function loadReport() {
   selectedReportName = opt.textContent.trim();
   const wsId = selectedWorkspaceId;
   const cfg = selectedDataset?._cfg || {};
-  // Always pass dataset_id + username (even without role) so effectiveIdentity works for SSAS/gateway reports
-  let rlsParams = selectedDatasetId ? `?dataset_id=${encodeURIComponent(selectedDatasetId)}` : '';
+  // Use the report's own datasetId (from Power BI API) for effectiveIdentity — not the selected dataset
+  const reportObj = allReports.find(r => r.id === reportId);
+  const embedDatasetId = reportObj?.datasetId || selectedDatasetId;
+  let rlsParams = embedDatasetId ? `?dataset_id=${encodeURIComponent(embedDatasetId)}` : '';
   if (cfg.rls_username) rlsParams += `&username=${encodeURIComponent(cfg.rls_username)}`;
   if (cfg.rls_role)     rlsParams += `&role=${encodeURIComponent(cfg.rls_role)}`;
   const container = document.getElementById('report-container');
