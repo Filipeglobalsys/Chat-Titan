@@ -7,7 +7,7 @@ load_dotenv(override=True)
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel
 
 from database import get_db, sync_metadata, get_dataset_schema, get_dataset_sync_status, sync_rls_dataset, sync_gateway_dataset, restore_sync_flags_from_db, _sync_flags
@@ -72,6 +72,10 @@ async def auth_middleware(request: Request, call_next):
 STATIC = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
+
+@app.get("/favicon.ico")
+async def favicon():
+    return Response(status_code=204)
 
 @app.get("/")
 async def root():
