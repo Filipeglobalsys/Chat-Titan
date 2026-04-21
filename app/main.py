@@ -1,8 +1,14 @@
 import os
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
-from dotenv import load_dotenv
 
+# Ensure app/ directory is in sys.path so sibling modules resolve on Vercel
+_APP_DIR = Path(__file__).parent
+if str(_APP_DIR) not in sys.path:
+    sys.path.insert(0, str(_APP_DIR))
+
+from dotenv import load_dotenv
 load_dotenv(override=True)
 
 from fastapi import FastAPI, HTTPException, Request
