@@ -32,6 +32,7 @@ async def lifespan(app: FastAPI):
     # Merge dataset configs from Supabase (overrides local file for Vercel)
     config_store.load_from_supabase()
 
+
     # Restore saved gateway connection strings + fill flags from config_store
     for dataset_id, cfg in config_store.get_all().items():
         if cfg.get("db_host") and cfg.get("db_password") is not None:
@@ -86,6 +87,7 @@ if STATIC.exists():
 @app.get("/favicon.ico")
 async def favicon():
     return Response(status_code=204)
+
 
 @app.get("/")
 async def root():
