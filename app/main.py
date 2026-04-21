@@ -446,16 +446,21 @@ async def _chat_handler(req: ChatRequest, user_email: str = ""):
         if saved.get("rls_username"):
             eff_user = saved["rls_username"]
             eff_role = saved.get("rls_role") or eff_role
-        elif not eff_user and user_email:
-            # Use logged-in user's email for datasets that require effectiveIdentity
-            eff_user = user_email
 
     rows = []
     query_error = None
     try:
         rows = await execute_query(req.dataset_id, dax, workspace_id, eff_user, eff_role)
     except Exception as e:
-        query_error = str(e)
+        err_str = str(e)
+        # If 401 and no effectiveIdentity configured, give actionable guidance
+        if "401" in err_str and not eff_user:
+            raise HTTPException(
+                403,
+                "Este dataset exige autenticação de usuário Power BI (effectiveIdentity). "
+                "Configure o 'Usuário Power BI' nas configurações deste dataset."
+            )
+        query_error = err_str
 
     # Auto-retry: ask AI to fix DAX on error
     if query_error:
