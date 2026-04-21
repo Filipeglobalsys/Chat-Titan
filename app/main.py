@@ -29,6 +29,9 @@ async def lifespan(app: FastAPI):
     # Restore sync_status flags from DB (gateway, rls_required, etc.)
     restore_sync_flags_from_db()
 
+    # Merge dataset configs from Supabase (overrides local file for Vercel)
+    config_store.load_from_supabase()
+
     # Restore saved gateway connection strings + fill flags from config_store
     for dataset_id, cfg in config_store.get_all().items():
         if cfg.get("db_host") and cfg.get("db_password") is not None:
