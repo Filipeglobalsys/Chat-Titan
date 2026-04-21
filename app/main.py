@@ -61,11 +61,12 @@ app = FastAPI(title="Power BI Copilot", lifespan=lifespan)
 
 # ── Auth middleware ──
 _PUBLIC = {"/api/login", "/api/me"}
+_PUBLIC_PREFIX = "/api/debug/"
 
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
     path = request.url.path
-    if not path.startswith("/api/") or path in _PUBLIC:
+    if not path.startswith("/api/") or path in _PUBLIC or path.startswith(_PUBLIC_PREFIX):
         return await call_next(request)
     token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
     if not token:
@@ -183,15 +184,33 @@ async def report_url(
         raise HTTPException(500, f"Erro ao gerar embed token: {e}")
 
 
+@app.get("/api/debug/schema-check/{dataset_id}")
+async def debug_schema_check(dataset_id: str):
+    db = get_db()
+    tables_res = db.table("tables").select("dataset_id, name").eq("dataset_id", dataset_id).execute()
+    flag = get_dataset_sync_status(dataset_id)
+    ds_res = db.table("datasets").select("id, name, sync_status, synced_at").eq("id", dataset_id).execute()
+    return {
+        "tables_in_db": len(tables_res.data or []),
+        "table_names": [r["name"] for r in (tables_res.data or [])],
+        "memory_flag": flag,
+        "db_row": ds_res.data,
+    }
+
+
 @app.get("/api/datasets/{workspace_id}")
 async def list_datasets(workspace_id: str):
     db = get_db()
-    # Use count per dataset_id to avoid the 1000-row default Supabase limit
-    tables_res = db.table("tables").select("dataset_id").limit(100_000).execute()
-    ds_with_schema = {r["dataset_id"] for r in (tables_res.data or [])}
-
     res = db.table("datasets").select("*").eq("workspace_id", workspace_id).order("name").execute()
     datasets = res.data or []
+
+    # Filter tables query to only datasets in this workspace to avoid Supabase's 1000-row default limit
+    workspace_ds_ids = [d["id"] for d in datasets]
+    ds_with_schema: set = set()
+    if workspace_ds_ids:
+        tables_res = db.table("tables").select("dataset_id").in_("dataset_id", workspace_ds_ids).execute()
+        ds_with_schema = {r["dataset_id"] for r in (tables_res.data or [])}
+
     # Add has_schema flag; only return refreshable datasets
     result = []
     for d in datasets:
