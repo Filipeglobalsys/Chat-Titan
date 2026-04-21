@@ -70,7 +70,8 @@ async def auth_middleware(request: Request, call_next):
     return await call_next(request)
 
 STATIC = Path(__file__).parent / "static"
-app.mount("/static", StaticFiles(directory=STATIC), name="static")
+if STATIC.exists():
+    app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
 
 @app.get("/favicon.ico")

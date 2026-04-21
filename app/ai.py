@@ -1,8 +1,15 @@
 import os
 import anthropic
 
-client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+_client: anthropic.AsyncAnthropic | None = None
 _MODEL = os.getenv("ANTHROPIC_MODEL", "claude-opus-4-7")
+
+
+def _get_client() -> anthropic.AsyncAnthropic:
+    global _client
+    if _client is None:
+        _client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    return _client
 
 _DAX_RULES = """
 DAX Rules (follow strictly):
@@ -128,7 +135,7 @@ async def answer_from_context(question: str, history: list) -> str:
     history_text = "\n".join(
         f"{'Usuário' if h.role == 'user' else 'IA'}: {h.content}" for h in last_exchange
     )
-    resp = await client.messages.create(
+    resp = await _get_client().messages.create(
         model=_MODEL,
         max_tokens=1024,
         system="Você é um analista de dados. Responda a pergunta do usuário com base apenas na resposta imediatamente anterior da IA. Seja direto e conciso. Responda em português.",
@@ -163,7 +170,7 @@ Schema:
         messages.append({"role": h.role, "content": h.content})
     messages.append({"role": "user", "content": question})
 
-    resp = await client.messages.create(
+    resp = await _get_client().messages.create(
         model=_MODEL,
         max_tokens=1024,
         system=system,
@@ -195,7 +202,7 @@ Error:
 
 Return ONLY the corrected DAX query."""
 
-    resp = await client.messages.create(
+    resp = await _get_client().messages.create(
         model=_MODEL,
         max_tokens=1024,
         system=system,
@@ -248,7 +255,7 @@ Schema:
         messages.append({"role": h.role, "content": h.content})
     messages.append({"role": "user", "content": question})
 
-    resp = await client.messages.create(
+    resp = await _get_client().messages.create(
         model=_MODEL, max_tokens=1024, system=system, messages=messages,
     )
     return resp.content[0].text.strip()
@@ -276,7 +283,7 @@ Error:
 
 Return ONLY the corrected SQL query."""
 
-    resp = await client.messages.create(
+    resp = await _get_client().messages.create(
         model=_MODEL, max_tokens=1024, system=system,
         messages=[{"role": "user", "content": user}],
     )
@@ -312,7 +319,7 @@ Schema:
 Dados retornados ({len(rows)} registros, amostra de até 20):
 {preview}"""
 
-    resp = await client.messages.create(
+    resp = await _get_client().messages.create(
         model=_MODEL,
         max_tokens=1024,
         system=system,
