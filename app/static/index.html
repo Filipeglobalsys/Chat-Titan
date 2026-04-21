@@ -887,7 +887,7 @@ async function onWorkspaceChange() {
   try {
     const [datasets, reports] = await Promise.all([
       api(`/api/datasets/${wsId}`),
-      api(`/api/reports/${wsId}`).catch(() => []),
+      api(`/api/reports/${wsId}`).catch(e => { console.warn('[TitanBI] Relatórios não carregados:', e.message); return []; }),
     ]);
     allDatasets = datasets || [];
     allReports = reports || [];

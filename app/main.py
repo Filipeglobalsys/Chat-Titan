@@ -184,6 +184,16 @@ async def report_url(
         raise HTTPException(500, f"Erro ao gerar embed token: {e}")
 
 
+@app.get("/api/debug/reports/{workspace_id}")
+async def debug_reports(workspace_id: str):
+    from powerbi import get_reports
+    try:
+        reports = await get_reports(workspace_id)
+        return {"count": len(reports), "reports": [{"id": r["id"], "name": r["name"], "datasetId": r.get("datasetId")} for r in reports]}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 @app.get("/api/debug/schema-check/{dataset_id}")
 async def debug_schema_check(dataset_id: str):
     db = get_db()
