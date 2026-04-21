@@ -4,6 +4,9 @@
 .env.production
 backend/.env
 
+# Runtime config with user data (gateway/RLS credentials)
+app/dataset_configs.json
+
 # Python
 __pycache__/
 *.py[cod]

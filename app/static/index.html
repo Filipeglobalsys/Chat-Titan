@@ -1,775 +1,1490 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IA TitanBi</title>
-  <script src="https://cdn.jsdelivr.net/npm/powerbi-client@2.23.1/dist/powerbi.min.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>IA TitanBi — Analytics</title>
+<script src="https://cdn.jsdelivr.net/npm/powerbi-client@2.23.1/dist/powerbi.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --nav:#1a1f2e;
+  --nav-hover:#252c3f;
+  --nav-active:#2563eb;
+  --nav-border:rgba(255,255,255,.06);
+  --blue:#2563eb;
+  --blue-dark:#1d4ed8;
+  --blue-light:#eff6ff;
+  --blue-mid:#dbeafe;
+  --bg:#f1f5f9;
+  --surface:#fff;
+  --border:#e2e8f0;
+  --border-2:#f1f5f9;
+  --text:#0f172a;
+  --text-2:#374151;
+  --muted:#64748b;
+  --muted-2:#94a3b8;
+  --green:#10b981;
+  --green-bg:#ecfdf5;
+  --green-border:#a7f3d0;
+  --yellow:#f59e0b;
+  --yellow-bg:#fffbeb;
+  --yellow-border:#fde68a;
+  --red:#ef4444;
+  --red-bg:#fef2f2;
+  --red-border:#fecaca;
+  --shadow:0 1px 3px rgba(0,0,0,.07);
+  --shadow-md:0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg:0 10px 40px rgba(0,0,0,.15);
+  --radius:10px;
+  --radius-sm:6px;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;height:100vh;display:flex;overflow:hidden;font-size:14px;line-height:1.5}
 
-    :root {
-      --sidebar: #0f172a;
-      --sidebar-hover: #1e293b;
-      --sidebar-active: #1d4ed8;
-      --sidebar-border: rgba(255,255,255,0.06);
-      --blue: #3b82f6;
-      --blue-dark: #1d4ed8;
-      --blue-light: #eff6ff;
-      --bg: #f1f5f9;
-      --surface: #ffffff;
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --muted: #64748b;
-      --muted-light: #94a3b8;
-      --green: #10b981;
-      --red: #ef4444;
-      --yellow: #f59e0b;
-      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-      --shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
-    }
+/* ── Nav Sidebar ── */
+.nav-sidebar{width:230px;min-width:230px;background:#0e1540;display:flex;flex-direction:column;height:100vh;border-right:1px solid rgba(255,255,255,.06)}
+.nav-brand{padding:22px 18px 16px;display:flex;align-items:center;gap:11px}
+.nav-brand-icon{width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.nav-brand-name{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px;line-height:1}
+.nav-brand-name span{color:#a78bfa}
+.nav-user{display:flex;align-items:center;gap:9px;padding:9px 12px;margin:0 8px 6px;background:rgba(255,255,255,.06);border-radius:10px;cursor:pointer;transition:background .15s;border:1px solid rgba(255,255,255,.07)}
+.nav-user:hover{background:rgba(255,255,255,.1)}
+.nav-user-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#6d28d9,#8b5cf6);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff}
+.nav-user-info{flex:1;min-width:0}
+.nav-user-name{font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-user-role{font-size:10px;color:rgba(255,255,255,.4);margin-top:1px}
+.nav-scroll{flex:1;overflow-y:auto;padding:4px 8px 8px}
+.nav-section{padding:14px 8px 5px;font-size:10px;font-weight:700;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:1.2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;color:rgba(255,255,255,.6);font-size:13px;font-weight:500;cursor:pointer;border-radius:9px;transition:all .15s;user-select:none;margin-bottom:1px}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(167,139,250,.2);color:#fff;font-weight:600}
+.nav-item svg{flex-shrink:0;opacity:.6}
+.nav-item:hover svg,.nav-item.active svg{opacity:1}
+.nav-divider{height:1px;background:rgba(255,255,255,.07);margin:6px 0}
+.nav-sync-msg{font-size:11px;color:rgba(255,255,255,.3);padding:6px 8px;min-height:18px}
+.nav-btn{width:100%;display:flex;align-items:center;gap:9px;padding:9px 12px;background:transparent;border:none;border-radius:9px;color:rgba(255,255,255,.6);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit;text-align:left;margin-bottom:1px}
+.nav-btn:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-btn.primary{color:#c4b5fd}
+.nav-btn.primary:hover{background:rgba(167,139,250,.15);color:#fff}
 
-    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; height: 100vh; display: flex; overflow: hidden; font-size: 14px; }
+/* ── App body ── */
+.app-body{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 
-    /* ── Sidebar ── */
-    .sidebar { width: 260px; min-width: 260px; background: var(--sidebar); display: flex; flex-direction: column; overflow: hidden; }
+/* ── Topbar ── */
+.topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 22px;gap:12px;flex-shrink:0;box-shadow:var(--shadow)}
+.topbar-title{font-size:15px;font-weight:700;color:var(--text);flex:1}
+.topbar-ws{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.topbar-ws select{padding:5px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text);background:var(--surface);outline:none;cursor:pointer;font-family:inherit}
+.topbar-ws select:focus{border-color:var(--blue)}
 
-    .sidebar-header { padding: 20px 20px 16px; border-bottom: 1px solid var(--sidebar-border); }
-    .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-    .brand-icon { width: 34px; height: 34px; background: transparent; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
-    .brand-name { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
-    .brand-sub { font-size: 11px; color: var(--muted-light); margin-top: 1px; }
+/* ── Views ── */
+.view{flex:1;display:flex;overflow:hidden}
+.view.hidden{display:none}
 
-    .sidebar-body { flex: 1; overflow-y: auto; padding: 12px 0; }
-    .sidebar-body::-webkit-scrollbar { width: 3px; }
-    .sidebar-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+/* ── List View ── */
+.list-content{flex:1;overflow-y:auto;padding:24px}
+.list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.list-header h2{font-size:18px;font-weight:700;color:var(--text)}
+.list-header p{font-size:12.5px;color:var(--muted);margin-top:2px}
+.list-actions{display:flex;gap:8px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.table-wrap{overflow-x:auto}
+table.ds-table{width:100%;border-collapse:collapse}
+table.ds-table thead tr{background:#f8fafc;border-bottom:2px solid var(--border)}
+table.ds-table th{padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap}
+table.ds-table tbody tr{border-bottom:1px solid var(--border-2);transition:background .1s}
+table.ds-table tbody tr:last-child{border-bottom:none}
+table.ds-table tbody tr:hover{background:#f8fafc}
+table.ds-table td{padding:12px 16px;font-size:13px;color:var(--text);vertical-align:middle}
+.ds-name{font-weight:600;color:var(--text)}
+.ds-id{font-size:11px;color:var(--muted);margin-top:2px;font-family:monospace}
+.tbl-empty{padding:40px;text-align:center;color:var(--muted);font-size:13px}
+.tbl-loading{padding:30px;text-align:center;color:var(--muted)}
 
-    .sidebar-section { padding: 0 12px 12px; }
-    .sidebar-label { font-size: 10px; font-weight: 600; color: var(--muted-light); text-transform: uppercase; letter-spacing: 0.8px; padding: 8px 8px 6px; }
+/* ── Report+Chat View ── */
+.report-chat{flex:1;display:flex;overflow:hidden}
+.pane-report{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--bg)}
+.report-topbar{height:48px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0}
+.report-topbar-title{font-size:13px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rpt-sel-wrap{display:flex;align-items:center;gap:6px}
+.rpt-sel-wrap select{padding:5px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:11.5px;color:var(--text);background:var(--surface);outline:none;max-width:180px;font-family:inherit}
+.report-area{flex:1;overflow:hidden;position:relative}
+.report-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--muted)}
+.report-empty-icon{width:64px;height:64px;background:var(--blue-light);border-radius:16px;display:flex;align-items:center;justify-content:center}
+.report-empty h3{font-size:14px;font-weight:600;color:var(--text-2)}
+.report-empty p{font-size:12px;text-align:center;max-width:220px;line-height:1.55}
+#report-container{width:100%;height:100%;display:none;position:absolute;top:0;left:0;right:0;bottom:0}
 
-    .sidebar-select-wrap { position: relative; margin-bottom: 6px; }
-    .sidebar-select-wrap .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted-light); pointer-events: none; display: flex; }
-    .sidebar-select { width: 100%; padding: 9px 10px 9px 32px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 12px; appearance: none; cursor: pointer; outline: none; transition: border-color .15s, background .15s; }
-    .sidebar-select:focus { border-color: var(--blue); background: rgba(59,130,246,0.1); }
-    .sidebar-select:disabled { opacity: .45; cursor: not-allowed; }
-    .sidebar-select option { background: #1e293b; color: #fff; }
+/* ── Resize ── */
+.resize-handle{width:4px;background:var(--border);cursor:col-resize;flex-shrink:0;transition:background .15s}
+.resize-handle:hover,.resize-handle.active{background:var(--blue)}
 
-    .sidebar-btn { width: 100%; display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: transparent; border: none; border-radius: 8px; color: var(--muted-light); font-size: 12px; font-weight: 500; cursor: pointer; transition: background .15s, color .15s; text-align: left; }
-    .sidebar-btn:hover { background: var(--sidebar-hover); color: #fff; }
-    .sidebar-btn:disabled { opacity: .4; cursor: not-allowed; }
-    .sidebar-btn.primary { background: var(--blue); color: #fff; justify-content: center; font-weight: 600; margin-top: 4px; }
-    .sidebar-btn.primary:hover { background: var(--blue-dark); }
-    .sidebar-btn.accent { background: rgba(59,130,246,0.12); color: var(--blue); border: 1px solid rgba(59,130,246,0.25); }
-    .sidebar-btn.accent:hover { background: rgba(59,130,246,0.2); }
+/* ── Chat pane ── */
+.pane-chat{width:380px;min-width:300px;flex-shrink:0;display:flex;flex-direction:column;background:var(--surface);border-left:1px solid var(--border);overflow:hidden}
+.chat-head{padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.chat-head-row{display:flex;align-items:center;gap:9px}
+.chat-head-icon{width:34px;height:34px;background:var(--blue-light);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.chat-head-title{font-size:13.5px;font-weight:700;color:var(--text)}
+.chat-head-sub{font-size:11px;color:var(--muted);margin-top:1px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-head-actions{margin-left:auto;display:flex;gap:5px}
+.icon-btn{width:28px;height:28px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .15s}
+.icon-btn:hover{background:var(--bg);color:var(--text);border-color:var(--blue)}
+.chat-status-bar{display:flex;align-items:center;gap:6px;margin-top:7px}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--muted-2);flex-shrink:0}
+.status-dot.on{background:var(--green)}
+.status-dot.warn{background:var(--yellow)}
+.status-text{font-size:11px;color:var(--muted)}
+.alert-strip{padding:8px 12px;font-size:11.5px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);flex-shrink:0}
+.alert-strip.warn{background:var(--yellow-bg);border-bottom-color:var(--yellow-border);color:#92400e}
+.alert-strip.err{background:var(--red-bg);border-bottom-color:var(--red-border);color:#991b1b}
+.alert-strip.ok{background:var(--green-bg);border-bottom-color:var(--green-border);color:#065f46}
+.alert-strip a{cursor:pointer;font-weight:600;text-decoration:underline;text-underline-offset:2px}
+#messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:#f8fafc}
+#messages::-webkit-scrollbar{width:4px}
+#messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.msg{display:flex;gap:8px;align-items:flex-end}
+.msg.user{flex-direction:row-reverse}
+.msg-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;font-weight:700}
+.msg-av.bot{background:var(--blue-light);color:var(--blue-dark);border:1px solid rgba(37,99,235,.15)}
+.msg-av.user{background:var(--blue);color:#fff}
+.bwrap{display:flex;flex-direction:column;gap:3px;max-width:88%}
+.msg.user .bwrap{align-items:flex-end}
+.bubble{padding:9px 12px;border-radius:13px;font-size:12.5px;line-height:1.6;word-break:break-word}
+.bubble.bot{background:var(--surface);border:1px solid var(--border);border-bottom-left-radius:4px;color:var(--text);box-shadow:var(--shadow)}
+.bubble.user{background:var(--blue);color:#fff;border-bottom-right-radius:4px}
+.bubble.bot h1,.bubble.bot h2,.bubble.bot h3{font-size:12.5px;font-weight:700;margin:9px 0 4px}
+.bubble.bot h1:first-child,.bubble.bot h2:first-child,.bubble.bot h3:first-child{margin-top:0}
+.bubble.bot p{margin-bottom:6px}.bubble.bot p:last-child{margin-bottom:0}
+.bubble.bot ul,.bubble.bot ol{padding-left:17px;margin:4px 0}
+.bubble.bot li{margin-bottom:2px}
+.bubble.bot strong{font-weight:700}
+.bubble.bot code{background:#f0f4ff;color:#1d4ed8;padding:1px 5px;border-radius:3px;font-size:11px;font-family:'Cascadia Code','Consolas',monospace}
+.bubble.bot pre{background:#1e293b;color:#e2e8f0;border-radius:7px;padding:10px 12px;font-size:11px;overflow-x:auto;margin:6px 0;white-space:pre-wrap;font-family:'Cascadia Code','Consolas',monospace}
+.bubble.bot pre code{background:none;color:inherit;padding:0;font-size:inherit}
+.tbl-wrap{overflow-x:auto;margin:7px 0;border-radius:7px;border:1px solid var(--border)}
+.tbl-wrap table{width:100%;border-collapse:collapse;font-size:11px;margin:0}
+.tbl-wrap th{background:#f0f4ff;padding:5px 9px;text-align:left;font-weight:700;border-bottom:2px solid var(--blue-mid);font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--blue-dark);white-space:nowrap}
+.tbl-wrap td{padding:5px 9px;border-bottom:1px solid var(--border-2);white-space:nowrap}
+.tbl-wrap tr:last-child td{border-bottom:none}
+.tbl-wrap tr:nth-child(even) td{background:#f8fafc}
+.result-panel{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface);box-shadow:var(--shadow);margin-top:5px}
+.rp-head{display:flex;align-items:center;justify-content:space-between;padding:6px 11px;cursor:pointer;font-size:11px;font-weight:600;color:var(--muted);user-select:none;background:#f8fafc;border-bottom:1px solid transparent;gap:8px}
+.rp-head:hover{color:var(--text)}.rp-head.open{border-bottom-color:var(--border)}
+.rp-body{display:none}.rp-body.open{display:block}
+pre.dax{padding:9px 11px;font-size:10.5px;color:#059669;background:#f0fdf4;overflow-x:auto;font-family:'Cascadia Code','Fira Mono',monospace;white-space:pre-wrap}
+.data-tbl-wrap{overflow-x:auto;max-height:180px;overflow-y:auto}
+.data-tbl-wrap table{width:100%;font-size:10.5px;border-collapse:collapse}
+.data-tbl-wrap th{padding:5px 9px;text-align:left;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);background:#f8fafc;white-space:nowrap;position:sticky;top:0}
+.data-tbl-wrap td{padding:4px 9px;color:var(--text);border-bottom:1px solid #f1f5f9;white-space:nowrap}
+.data-tbl-wrap tr:hover td{background:#f8fafc}
+.tbl-more{padding:5px 9px;font-size:10px;color:var(--muted);background:#f8fafc;border-top:1px solid var(--border)}
+.typing{display:flex;gap:4px;align-items:center;padding:10px 12px}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--muted-2);animation:bounce .9s infinite}
+.dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+.chat-input-area{padding:10px 12px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0}
+.chat-input-row{display:flex;gap:7px;align-items:flex-end;background:#f1f5f9;border:1px solid var(--border);border-radius:11px;padding:5px 5px 5px 11px;transition:border-color .15s,box-shadow .15s}
+.chat-input-row:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1);background:#fff}
+textarea{flex:1;padding:4px 0;background:transparent;border:none;color:var(--text);font-size:12.5px;resize:none;outline:none;line-height:1.5;max-height:100px;font-family:inherit}
+textarea::placeholder{color:var(--muted-2)}
+textarea:disabled{opacity:.5}
+.send-btn{width:32px;height:32px;background:var(--blue);border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+.send-btn:hover{background:var(--blue-dark)}.send-btn:disabled{background:var(--border);cursor:not-allowed}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin .7s linear infinite}
+.welcome{background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%);border:1px solid var(--blue-mid);border-radius:11px;padding:13px}
+.welcome h4{font-size:12.5px;font-weight:700;color:var(--blue-dark);margin-bottom:5px}
+.welcome p{font-size:11.5px;color:var(--muted);line-height:1.6}
+.welcome ul{margin-top:6px;padding-left:13px}
+.welcome li{font-size:11.5px;color:var(--muted);line-height:1.75}
 
-    .divider-line { height: 1px; background: var(--sidebar-border); margin: 8px 12px; }
+/* ── Config View ── */
+.config-view{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.config-topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 22px;gap:12px;flex-shrink:0;box-shadow:var(--shadow)}
+.config-topbar-left{display:flex;align-items:center;gap:10px}
+.back-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12.5px;font-weight:500;color:var(--text-2);cursor:pointer;transition:all .15s;font-family:inherit}
+.back-btn:hover{background:var(--bg);border-color:var(--blue);color:var(--blue)}
+.config-topbar-title{font-size:15px;font-weight:700;color:var(--text)}
+.config-topbar-actions{margin-left:auto;display:flex;gap:8px}
+.config-body{flex:1;overflow-y:auto;padding:28px}
+.config-ds-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow)}
+.config-ds-icon{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.config-ds-name{font-size:15px;font-weight:700;color:var(--text)}
+.config-ds-id{font-size:11px;color:var(--muted);margin-top:2px;font-family:monospace}
+.config-ds-chips{display:flex;gap:6px;margin-top:6px}
+.config-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:900px){.config-grid{grid-template-columns:1fr}}
+.config-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.config-card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:#f8fafc}
+.config-card-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.config-card-title{font-size:13px;font-weight:700;color:var(--text)}
+.config-card-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.config-card-badge{margin-left:auto}
+.config-card-body{padding:18px}
+.fg{margin-bottom:14px}
+.fg:last-child{margin-bottom:0}
+.fg label{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:5px}
+.fg label .req{color:var(--red);margin-left:2px}
+.finput,.fselect{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s,box-shadow .15s;font-family:inherit}
+.finput:focus,.fselect:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.09)}
+.finput::placeholder{color:var(--muted-2)}
+.fhint{font-size:11px;color:var(--muted);margin-top:4px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.frow-3{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+.config-status{padding:10px 14px;border-radius:var(--radius-sm);font-size:12.5px;display:flex;align-items:center;gap:8px;margin-top:14px}
+.config-status.ok{background:var(--green-bg);border:1px solid var(--green-border);color:#065f46}
+.config-status.err{background:var(--red-bg);border:1px solid var(--red-border);color:#991b1b}
+.config-footer{padding:20px 28px;border-top:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:12px;justify-content:flex-end;flex-shrink:0}
 
-    .sync-status { padding: 6px 12px; font-size: 11px; color: var(--muted-light); min-height: 22px; }
+/* ── Buttons ── */
+.btn{padding:8px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;display:inline-flex;align-items:center;gap:7px;transition:all .15s;font-family:inherit}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-primary:hover{background:var(--blue-dark)}
+.btn-secondary{background:var(--surface);color:var(--text-2);border-color:var(--border)}
+.btn-secondary:hover{background:var(--bg)}
+.btn-ghost{background:none;color:var(--muted);border-color:transparent}
+.btn-ghost:hover{background:var(--bg);color:var(--text)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-sm{padding:6px 13px;font-size:12px}
 
-    .sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--sidebar-border); display: flex; align-items: center; gap: 10px; }
-    .avatar-circle { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-    .footer-info { flex: 1; min-width: 0; }
-    .footer-name { font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .footer-role { font-size: 11px; color: var(--muted-light); }
+/* ── Chips ── */
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px}
+.chip.ok{background:var(--green-bg);color:#065f46;border:1px solid var(--green-border)}
+.chip.warn{background:var(--yellow-bg);color:#92400e;border:1px solid var(--yellow-border)}
+.chip.err{background:var(--red-bg);color:#991b1b;border:1px solid var(--red-border)}
+.chip.info{background:var(--blue-light);color:var(--blue-dark);border:1px solid var(--blue-mid)}
+.chip.neutral{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
 
-    /* ── Main area ── */
-    .main { flex: 1; display: flex; overflow: hidden; }
+/* ── Login ── */
+.login-wrap{position:fixed;inset:0;display:flex;z-index:2000}
+.login-left{width:380px;min-width:380px;background:#fff;display:flex;flex-direction:column;justify-content:center;padding:52px 44px;box-shadow:4px 0 24px rgba(0,0,0,.08)}
+.login-right{flex:1;background:#0e1540;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+/* dot grid pattern */
+.login-right::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px;pointer-events:none}
+/* diagonal overlay */
+.login-right::after{content:'';position:absolute;top:0;left:-80px;width:160px;height:100%;background:rgba(255,255,255,.03);transform:skewX(-8deg);pointer-events:none}
+.login-brand{text-align:center;position:relative;z-index:1}
+.login-brand-logo{margin-bottom:28px}
+.login-brand-name{font-size:52px;font-weight:800;color:#fff;letter-spacing:-1px;line-height:1}
+.login-brand-name span{color:#a78bfa}
+.login-left-title{font-size:22px;font-weight:700;color:#0f172a;margin-bottom:6px}
+.login-left-sub{font-size:13.5px;color:#64748b;margin-bottom:32px}
+.login-field{margin-bottom:16px;position:relative}
+.login-field label{display:block;font-size:12.5px;font-weight:600;color:#374151;margin-bottom:6px}
+.login-field label span{color:#ef4444;margin-left:1px}
+.login-field-wrap{position:relative}
+.login-field-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none}
+.login-field input{width:100%;padding:11px 14px 11px 36px;border:1.5px solid #e2e8f0;border-radius:8px;color:#0f172a;font-size:14px;outline:none;font-family:inherit;transition:border-color .15s;background:#fff}
+.login-field input:focus{border-color:#7c3aed}
+.login-field input::placeholder{color:#cbd5e1}
+.login-field-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;padding:2px;display:flex;align-items:center}
+.login-field-eye:hover{color:#64748b}
+.login-extras{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.login-remember{display:flex;align-items:center;gap:8px;font-size:13px;color:#374151;cursor:pointer;user-select:none}
+.toggle-sw{width:36px;height:20px;background:#cbd5e1;border-radius:10px;position:relative;transition:background .2s;flex-shrink:0;cursor:pointer}
+.toggle-sw.on{background:#7c3aed}
+.toggle-sw::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-sw.on::after{transform:translateX(16px)}
+.login-forgot{font-size:13px;color:#7c3aed;text-decoration:none;font-weight:500}
+.login-forgot:hover{text-decoration:underline}
+.login-btn{width:100%;padding:13px;background:#0f172a;border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s;font-family:inherit;margin-bottom:10px}
+.login-btn:hover:not(:disabled){background:#1e293b}
+.login-btn:disabled{opacity:.5;cursor:not-allowed}
+.login-btn-ms{width:100%;padding:12px;background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;color:#374151;font-size:14px;font-weight:500;cursor:pointer;transition:border-color .15s,background .15s;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:9px}
+.login-btn-ms:hover{border-color:#7c3aed;background:#faf5ff}
+.login-err{font-size:12.5px;color:#ef4444;margin-top:10px;min-height:18px}
 
-    /* ── Report pane ── */
-    .pane-report { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; background: var(--bg); }
-
-    .pane-topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--surface); border-bottom: 1px solid var(--border); gap: 12px; flex-shrink: 0; box-shadow: var(--shadow); }
-    .topbar-title { font-size: 15px; font-weight: 600; color: var(--text); }
-    .topbar-actions { display: flex; align-items: center; gap: 8px; }
-    .topbar-badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; }
-    .topbar-badge.info { background: var(--blue-light); color: var(--blue-dark); }
-
-    .report-area { flex: 1; overflow: hidden; position: relative; }
-    .report-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 16px; }
-    .report-placeholder-icon { width: 72px; height: 72px; background: var(--blue-light); border-radius: 20px; display: flex; align-items: center; justify-content: center; }
-    .report-placeholder-icon svg { color: var(--blue); }
-    .report-placeholder h3 { font-size: 16px; font-weight: 600; color: var(--text); }
-    .report-placeholder p { font-size: 13px; color: var(--muted); text-align: center; max-width: 280px; line-height: 1.5; }
-    #report-frame { width: 100%; height: 100%; border: none; display: none; overflow: hidden; }
-
-    /* ── Divider ── */
-    .divider { width: 4px; background: var(--border); cursor: col-resize; flex-shrink: 0; transition: background .15s; }
-    .divider:hover, .divider.dragging { background: var(--blue); }
-
-    /* ── Chat pane ── */
-    .pane-chat { width: 380px; min-width: 300px; flex-shrink: 0; display: flex; flex-direction: column; background: var(--surface); border-left: 1px solid var(--border); overflow: hidden; }
-
-    .chat-header { padding: 14px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-    .chat-header-row { display: flex; align-items: center; gap: 10px; }
-    .chat-header-icon { width: 34px; height: 34px; background: var(--blue-light); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-    .chat-header-title { font-size: 14px; font-weight: 600; color: var(--text); }
-    .chat-header-sub { font-size: 11px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .chat-status { display: flex; align-items: center; gap: 5px; margin-top: 8px; }
-    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
-    .status-dot.off { background: var(--muted-light); }
-    .status-text { font-size: 11px; color: var(--muted); }
-
-    /* Messages */
-    #messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; background: #f8fafc; }
-    #messages::-webkit-scrollbar { width: 4px; }
-    #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    .msg { display: flex; gap: 8px; align-items: flex-end; }
-    .msg.user { flex-direction: row-reverse; }
-
-    .msg-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; font-weight: 600; }
-    .msg-avatar.bot { background: var(--blue-light); color: var(--blue-dark); border: 1px solid rgba(59,130,246,0.2); }
-    .msg-avatar.user { background: var(--blue); color: #fff; }
-
-    .bubble-wrap { display: flex; flex-direction: column; gap: 4px; max-width: 84%; }
-    .msg.user .bubble-wrap { align-items: flex-end; }
-
-    .bubble { padding: 10px 13px; border-radius: 14px; font-size: 13px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
-    .bubble.bot { background: var(--surface); border: 1px solid var(--border); border-bottom-left-radius: 4px; color: var(--text); box-shadow: var(--shadow); }
-    .bubble.user { background: var(--blue); color: #fff; border-bottom-right-radius: 4px; }
-
-    /* Result panels */
-    .result-panel { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface); box-shadow: var(--shadow); }
-    .result-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; cursor: pointer; font-size: 11px; font-weight: 500; color: var(--muted); user-select: none; background: #f8fafc; border-bottom: 1px solid transparent; }
-    .result-panel-header:hover { color: var(--text); }
-    .result-panel-header.open { border-bottom-color: var(--border); }
-    .result-panel-header span { display: flex; align-items: center; gap: 6px; }
-    .panel-body { display: none; }
-    .panel-body.open { display: block; }
-    pre.dax { padding: 10px 12px; font-size: 11px; color: #059669; background: #f0fdf4; overflow-x: auto; font-family: 'Cascadia Code', 'Fira Mono', monospace; border-top: 1px solid #d1fae5; }
-
-    .tbl-wrap { overflow-x: auto; max-height: 200px; overflow-y: auto; }
-    .tbl-wrap::-webkit-scrollbar { width: 3px; height: 3px; }
-    .tbl-wrap::-webkit-scrollbar-thumb { background: var(--border); }
-    table { width: 100%; font-size: 11px; border-collapse: collapse; }
-    th { padding: 6px 10px; text-align: left; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); background: #f8fafc; white-space: nowrap; }
-    td { padding: 5px 10px; color: var(--text); border-bottom: 1px solid #f1f5f9; white-space: nowrap; }
-    tr:hover td { background: #f8fafc; }
-    .tbl-more { padding: 5px 10px; font-size: 10px; color: var(--muted); background: #f8fafc; }
-
-    /* Typing */
-    .typing { display: flex; gap: 4px; align-items: center; padding: 12px 13px; }
-    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted-light); animation: bounce .9s infinite; }
-    .dot:nth-child(2) { animation-delay: .15s; }
-    .dot:nth-child(3) { animation-delay: .3s; }
-    @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
-
-    /* Chat input */
-    .chat-input-area { padding: 12px 14px; border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
-    .chat-input-row { display: flex; gap: 8px; align-items: flex-end; background: #f1f5f9; border: 1px solid var(--border); border-radius: 12px; padding: 6px 6px 6px 12px; transition: border-color .15s, box-shadow .15s; }
-    .chat-input-row:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); background: #fff; }
-    textarea { flex: 1; padding: 4px 0; background: transparent; border: none; color: var(--text); font-size: 13px; resize: none; outline: none; line-height: 1.5; max-height: 120px; font-family: inherit; }
-    textarea::placeholder { color: var(--muted-light); }
-    textarea:disabled { opacity: .5; }
-    .send-btn { width: 34px; height: 34px; background: var(--blue); border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s; }
-    .send-btn:hover { background: var(--blue-dark); }
-    .send-btn:disabled { background: var(--border); cursor: not-allowed; }
-    .send-btn:disabled svg { opacity: .5; }
-
-    .spin { animation: spin .7s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* Welcome card */
-    .welcome-card { background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%); border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px; }
-    .welcome-card h4 { font-size: 13px; font-weight: 600; color: var(--blue-dark); margin-bottom: 6px; }
-    .welcome-card p { font-size: 12px; color: var(--muted); line-height: 1.55; }
-    .welcome-card ul { margin-top: 8px; padding-left: 14px; }
-    .welcome-card li { font-size: 12px; color: var(--muted); line-height: 1.7; }
-  </style>
+/* ── Toast ── */
+.toast-stack{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 14px;font-size:13px;box-shadow:var(--shadow-md);display:flex;align-items:center;gap:10px;min-width:240px;max-width:320px;animation:slide-in .2s ease;border-left-width:3px}
+.toast.ok{border-left-color:var(--green)}.toast.err{border-left-color:var(--red)}.toast.info{border-left-color:var(--blue)}
+@keyframes slide-in{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+</style>
 </head>
 <body>
 
-<!-- ── Sidebar ── -->
-<aside class="sidebar">
-  <div class="sidebar-header">
-    <div class="brand">
-      <div class="brand-icon">
-        <svg width="34" height="34" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <!-- Shadow/base of T -->
-          <polygon points="18,28 82,28 82,20 18,20" fill="#2d1b69" opacity="0.7"/>
-          <!-- Left arm of T (3D left face) -->
-          <polygon points="18,20 28,28 28,72 18,64" fill="#4c1d95"/>
-          <!-- Right arm of T (3D right face) -->
-          <polygon points="72,28 82,20 82,64 72,72" fill="#7c3aed" opacity="0.6"/>
-          <!-- Top bar of T (top face) -->
-          <polygon points="18,20 82,20 72,28 28,28" fill="#a78bfa"/>
-          <!-- Stem left face -->
-          <polygon points="40,28 50,36 50,80 40,72" fill="#5b21b6"/>
-          <!-- Stem right face -->
-          <polygon points="60,28 50,36 50,80 60,72" fill="#7c3aed" opacity="0.8"/>
-          <!-- Stem bottom face -->
-          <polygon points="40,72 60,72 50,80" fill="#4c1d95"/>
-          <!-- Top bar front face -->
-          <rect x="18" y="20" width="64" height="8" rx="1" fill="#7c3aed"/>
-          <!-- Stem front face -->
-          <rect x="40" y="28" width="20" height="44" fill="#8b5cf6"/>
-        </svg>
-      </div>
-      <div>
-        <div class="brand-name">IA TitanBi</div>
-        <div class="brand-sub">Assistente de Dados com IA</div>
-      </div>
-    </div>
-  </div>
+<!-- ── Login ── -->
+<div id="login-wrap" class="login-wrap">
+  <!-- Left: form -->
+  <div class="login-left">
+    <div class="login-left-title">Bem-Vindo!</div>
+    <div class="login-left-sub">Informe os dados abaixo para acessar sua conta.</div>
 
-  <div class="sidebar-body">
-    <!-- Workspace -->
-    <div class="sidebar-section">
-      <div class="sidebar-label">Workspace</div>
-      <div class="sidebar-select-wrap">
-        <span class="icon">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    <div class="login-field">
+      <label>E-mail<span>*</span></label>
+      <div class="login-field-wrap">
+        <span class="login-field-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         </span>
-        <select class="sidebar-select" id="ws-select" onchange="onWorkspaceChange()" disabled>
-          <option value="">Carregando...</option>
-        </select>
+        <input type="email" id="login-email" placeholder="" autocomplete="email"
+               onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()"/>
       </div>
     </div>
 
-    <div class="divider-line"></div>
-
-    <!-- Dataset para IA -->
-    <div class="sidebar-section">
-      <div class="sidebar-label">Dataset — IA</div>
-      <div class="sidebar-select-wrap">
-        <span class="icon">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+    <div class="login-field">
+      <label>Palavra-passe<span>*</span></label>
+      <div class="login-field-wrap">
+        <span class="login-field-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </span>
-        <select class="sidebar-select" id="ds-select" onchange="onDatasetChange()" disabled>
-          <option value="">Selecione um workspace</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="divider-line"></div>
-
-    <!-- Relatório -->
-    <div class="sidebar-section">
-      <div class="sidebar-label">Relatório Power BI</div>
-      <div class="sidebar-select-wrap">
-        <span class="icon">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-        </span>
-        <select class="sidebar-select" id="report-select" disabled>
-          <option value="">Selecione um workspace</option>
-        </select>
-      </div>
-      <button class="sidebar-btn primary" id="load-report-btn" onclick="loadReport()" disabled>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Abrir Relatório
-      </button>
-    </div>
-
-    <div class="divider-line"></div>
-
-    <!-- Sync -->
-    <div class="sidebar-section">
-      <div class="sidebar-label">Sincronização</div>
-      <button class="sidebar-btn accent" id="sync-btn" onclick="syncMetadata(false)">
-        <svg id="sync-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        Sincronizar (incremental)
-      </button>
-      <button class="sidebar-btn" id="force-btn" onclick="syncMetadata(true)" style="margin-top:4px">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        Forçar Resync completo
-      </button>
-      <div class="sync-status" id="sync-msg"></div>
-    </div>
-  </div>
-
-  <div class="sidebar-footer">
-    <div class="avatar-circle">👤</div>
-    <div class="footer-info">
-      <div class="footer-name">IA TitanBi</div>
-      <div class="footer-role">Globalsys Analytics</div>
-    </div>
-  </div>
-</aside>
-
-<!-- ── Main ── -->
-<div class="main">
-
-  <!-- Report pane -->
-  <div class="pane-report" id="pane-report">
-    <div class="pane-topbar">
-      <div class="topbar-title" id="report-title">Selecione um relatório</div>
-      <div class="topbar-actions">
-        <span class="topbar-badge info" id="report-badge" style="display:none">Ao vivo</span>
-      </div>
-    </div>
-    <div class="report-area">
-      <div class="report-placeholder" id="report-placeholder">
-        <div class="report-placeholder-icon">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h2v5H7zM11 6h2v7h-2zM15 10h2v3h-2z"/></svg>
-        </div>
-        <h3>Nenhum relatório aberto</h3>
-        <p>Selecione um workspace e relatório na barra lateral, depois clique em <strong>Abrir Relatório</strong></p>
-      </div>
-      <div id="report-frame"></div>
-    </div>
-  </div>
-
-  <!-- Divider -->
-  <div class="divider" id="divider"></div>
-
-  <!-- Chat pane -->
-  <div class="pane-chat" id="pane-chat">
-    <div class="chat-header">
-      <div class="chat-header-row">
-        <div class="chat-header-icon">🤖</div>
-        <div style="flex:1;min-width:0">
-          <div class="chat-header-title">Titan IA</div>
-          <div class="chat-header-sub" id="chat-ds-label">Nenhum dataset selecionado</div>
-        </div>
-      </div>
-      <div class="chat-status">
-        <div class="status-dot" id="status-dot" style="background:var(--muted-light)"></div>
-        <span class="status-text" id="status-text">Aguardando seleção de dataset</span>
-      </div>
-    </div>
-
-    <div id="messages"></div>
-
-    <div class="chat-input-area">
-      <div class="chat-input-row">
-        <textarea id="input" rows="1" placeholder="Selecione um dataset para começar..."
-          disabled oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
-        <button class="send-btn" id="send-btn" onclick="sendMessage()" disabled>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        <input type="password" id="login-pass" placeholder="" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')doLogin()"/>
+        <button class="login-field-eye" type="button" onclick="togglePassVis()" id="eye-btn">
+          <svg id="eye-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
       </div>
+    </div>
+
+    <div class="login-extras">
+      <label class="login-remember">
+        <div class="toggle-sw on" id="remember-toggle" onclick="this.classList.toggle('on')"></div>
+        Lembrar-me
+      </label>
+      <a href="#" class="login-forgot">Esqueceu a senha?</a>
+    </div>
+
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
+    <button class="login-btn-ms" onclick="toast('Autenticação Microsoft em breve','info')">
+      <svg width="16" height="16" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+      Entrar com Microsoft
+    </button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+
+  <!-- Right: branding -->
+  <div class="login-right">
+    <div class="login-brand">
+      <div class="login-brand-logo">
+        <svg width="140" height="140" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="lgBg" x1="0" y1="0" x2="160" y2="160" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#a8b2e8"/>
+              <stop offset="1" stop-color="#7452b8"/>
+            </linearGradient>
+          </defs>
+          <!-- Background rounded square -->
+          <rect width="160" height="160" rx="32" fill="url(#lgBg)"/>
+          <!-- Front face T: dark purple -->
+          <polygon points="12,54 140,54 140,76 12,76" fill="#5a1ea0"/>
+          <polygon points="62,76 98,76 98,132 62,132" fill="#5a1ea0"/>
+          <!-- Top face crossbar: lighter purple/lilac -->
+          <polygon points="12,54 27,41 155,41 140,54" fill="#9b6fe0"/>
+          <!-- Right face crossbar: white -->
+          <polygon points="140,54 155,41 155,63 140,76" fill="rgba(255,255,255,.88)"/>
+          <!-- Inner step top (horizontal, between crossbar and stem): slightly dimmer white -->
+          <polygon points="98,76 113,63 155,63 140,76" fill="rgba(255,255,255,.55)"/>
+          <!-- Right face stem: white (main) -->
+          <polygon points="98,76 113,63 113,119 98,132" fill="rgba(255,255,255,.92)"/>
+          <!-- Play triangle on stem right face -->
+          <polygon points="99.5,89 99.5,112 112,100.5" fill="#7c3aed" opacity=".6"/>
+        </svg>
+      </div>
+      <div class="login-brand-name">Titan <span>BI</span></div>
     </div>
   </div>
 </div>
 
+<!-- ── Nav Sidebar ── -->
+<nav class="nav-sidebar" id="main-nav" style="display:none">
+  <!-- Brand -->
+  <div class="nav-brand">
+    <div class="nav-brand-icon">
+      <svg width="38" height="38" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="lgNav" x1="0" y1="0" x2="160" y2="160" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#a8b2e8"/>
+            <stop offset="1" stop-color="#7452b8"/>
+          </linearGradient>
+        </defs>
+        <rect width="160" height="160" rx="32" fill="url(#lgNav)"/>
+        <polygon points="12,54 140,54 140,76 12,76" fill="#5a1ea0"/>
+        <polygon points="62,76 98,76 98,132 62,132" fill="#5a1ea0"/>
+        <polygon points="12,54 27,41 155,41 140,54" fill="#9b6fe0"/>
+        <polygon points="140,54 155,41 155,63 140,76" fill="rgba(255,255,255,.88)"/>
+        <polygon points="98,76 113,63 155,63 140,76" fill="rgba(255,255,255,.55)"/>
+        <polygon points="98,76 113,63 113,119 98,132" fill="rgba(255,255,255,.92)"/>
+        <polygon points="99.5,89 99.5,112 112,100.5" fill="#7c3aed" opacity=".6"/>
+      </svg>
+    </div>
+    <div class="nav-brand-name">Titan<span>BI</span></div>
+  </div>
+
+  <!-- User -->
+  <div class="nav-user">
+    <div class="nav-user-av" id="nav-user-av">—</div>
+    <div class="nav-user-info">
+      <div class="nav-user-name" id="nav-user-name">Carregando…</div>
+      <div class="nav-user-role" id="nav-user-role"></div>
+    </div>
+    <svg onclick="confirmLogout()" title="Sair" style="cursor:pointer;flex-shrink:0;transition:stroke .15s" onmouseenter="this.setAttribute('stroke','rgba(255,255,255,.8)')" onmouseleave="this.setAttribute('stroke','rgba(255,255,255,.35)')" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+  </div>
+
+  <div class="nav-scroll">
+    <div class="nav-section">Gerenciamento</div>
+    <div class="nav-item" onclick="navTo('list')" id="nav-dashboards">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboards
+    </div>
+
+    <div class="nav-divider"></div>
+    <div class="nav-section">Sincronização</div>
+    <button class="nav-btn primary" id="sync-btn" onclick="syncMetadata(false)">
+      <svg id="sync-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Sincronizar (incremental)
+    </button>
+    <button class="nav-btn" id="force-btn" onclick="syncMetadata(true)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Forçar Resync completo
+    </button>
+    <div class="nav-sync-msg" id="sync-msg"></div>
+  </div>
+</nav>
+
+<!-- ── App Body ── -->
+<div class="app-body" id="main-body" style="display:none">
+
+  <!-- ══ VIEW: Dashboard List ══ -->
+  <div class="view" id="view-list">
+    <!-- Topbar -->
+    <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+      <div class="topbar">
+        <div style="flex:1">
+          <div class="topbar-title">Dashboards</div>
+        </div>
+        <div class="topbar-ws">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>Workspace:</span>
+          <select id="ws-select" onchange="onWorkspaceChange()">
+            <option value="">Carregando...</option>
+          </select>
+        </div>
+      </div>
+      <!-- List Content -->
+      <div class="list-content">
+        <div class="list-header">
+          <div>
+            <h2>Datasets cadastrados</h2>
+            <p>Selecione um dataset para visualizar o relatório e consultar com a IA</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table class="ds-table">
+              <thead>
+                <tr>
+                  <th>Dataset</th>
+                  <th>Tipo</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="ds-tbody">
+                <tr><td colspan="4" class="tbl-loading">Selecione um workspace para carregar os datasets</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ VIEW: Report + Chat ══ -->
+  <div class="view hidden" id="view-report">
+    <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+      <!-- Topbar -->
+      <div class="topbar">
+        <button class="back-btn" onclick="navTo('list')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Dashboards
+        </button>
+        <div style="width:1px;height:20px;background:var(--border)"></div>
+        <div style="flex:1;font-size:13.5px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="view-ds-name">—</div>
+        <div class="rpt-sel-wrap">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          <select id="report-select" onchange="loadReport()" disabled>
+            <option value="">Nenhum relatório</option>
+          </select>
+        </div>
+      </div>
+      <!-- Report + Chat split -->
+      <div class="report-chat" style="flex:1">
+        <!-- Report -->
+        <div class="pane-report" id="pane-report">
+          <div class="report-area">
+            <div class="report-empty" id="report-empty">
+              <div class="report-empty-icon">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h2v5H7zM11 6h2v7h-2zM15 10h2v3h-2z"/></svg>
+              </div>
+              <h3>Nenhum relatório aberto</h3>
+              <p>Selecione um relatório no topo da página</p>
+            </div>
+            <div id="report-container"></div>
+          </div>
+        </div>
+        <!-- Resize -->
+        <div class="resize-handle" id="resize-handle"></div>
+        <!-- Chat -->
+        <div class="pane-chat" id="pane-chat">
+          <div class="chat-head">
+            <div class="chat-head-row">
+              <div class="chat-head-icon">🤖</div>
+              <div style="flex:1;min-width:0">
+                <div class="chat-head-title">Titan IA</div>
+                <div class="chat-head-sub" id="chat-ds-label">Nenhum dataset</div>
+              </div>
+              <div class="chat-head-actions">
+                <button class="icon-btn" id="config-btn" onclick="openConfigForCurrent()" title="Configurar dataset" style="display:none">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </button>
+                <button class="icon-btn" onclick="clearChat()" title="Limpar conversa">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="chat-status-bar">
+              <div class="status-dot" id="status-dot"></div>
+              <span class="status-text" id="status-text">Aguardando dataset</span>
+            </div>
+          </div>
+          <div id="alert-strip" style="display:none"></div>
+          <div id="messages"></div>
+          <div class="chat-input-area">
+            <div class="chat-input-row">
+              <textarea id="input" rows="1" placeholder="Selecione um dataset..."
+                disabled oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+              <button class="send-btn" id="send-btn" onclick="sendMessage()" disabled>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ VIEW: Config ══ -->
+  <div class="view hidden config-view" id="view-config">
+    <div class="config-topbar">
+      <div class="config-topbar-left">
+        <button class="back-btn" id="config-back-btn" onclick="closeConfig()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Voltar
+        </button>
+        <div style="width:1px;height:20px;background:var(--border)"></div>
+        <div class="config-topbar-title">Configuração do Dataset</div>
+      </div>
+      <div class="config-topbar-actions">
+        <button class="btn btn-primary" id="save-cfg-btn" onclick="saveConfig()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Salvar e Conectar
+        </button>
+      </div>
+    </div>
+    <div class="config-body">
+      <!-- Dataset Info Card -->
+      <div class="config-ds-card" id="cfg-ds-card">
+        <div class="config-ds-icon" id="cfg-ds-icon">⚙️</div>
+        <div style="flex:1;min-width:0">
+          <div class="config-ds-name" id="cfg-ds-name">—</div>
+          <div class="config-ds-id" id="cfg-ds-id">—</div>
+          <div class="config-ds-chips" id="cfg-ds-chips"></div>
+        </div>
+      </div>
+      <!-- Two-column grid -->
+      <div class="config-grid">
+        <!-- RLS Card -->
+        <div class="config-card" id="rls-card">
+          <div class="config-card-head">
+            <div class="config-ds-icon config-card-ico" style="background:var(--yellow-bg)">🔐</div>
+            <div>
+              <div class="config-card-title">Segurança — RLS</div>
+              <div class="config-card-sub">Row-Level Security / effectiveIdentity</div>
+            </div>
+            <div class="config-card-badge">
+              <span class="chip" id="rls-req-badge">Opcional</span>
+            </div>
+          </div>
+          <div class="config-card-body">
+            <div class="fg">
+              <label>Usuário (e-mail) <span class="req">*</span></label>
+              <input class="finput" type="email" id="cfg-rls-user" placeholder="usuario@empresa.com.br"/>
+              <div class="fhint">Usuário impersonado para consultas (effectiveIdentity)</div>
+            </div>
+            <div class="fg">
+              <label>Papel / Role <span class="req">*</span></label>
+              <input class="finput" type="text" id="cfg-rls-role" placeholder="Ex: Vendedor, Gerente, Admin"/>
+              <div class="fhint">Nome exato da role definida no Power BI Desktop</div>
+            </div>
+          </div>
+        </div>
+        <!-- DB Card -->
+        <div class="config-card" id="db-card">
+          <div class="config-card-head">
+            <div class="config-ds-icon config-card-ico" style="background:var(--red-bg)">🗄️</div>
+            <div>
+              <div class="config-card-title">Conexão com Banco de Dados</div>
+              <div class="config-card-sub">Para datasets com Gateway on-premises</div>
+            </div>
+            <div class="config-card-badge">
+              <span class="chip" id="db-req-badge">Opcional</span>
+            </div>
+          </div>
+          <div class="config-card-body">
+            <div class="fg">
+              <label>Tipo de Banco <span class="req">*</span></label>
+              <select class="fselect" id="cfg-db-dialect">
+                <option value="mssql">SQL Server (MSSQL)</option>
+                <option value="postgresql">PostgreSQL</option>
+                <option value="mysql">MySQL / MariaDB</option>
+              </select>
+            </div>
+            <div class="frow-3">
+              <div class="fg">
+                <label>Servidor / Host <span class="req">*</span></label>
+                <input class="finput" type="text" id="cfg-db-host" placeholder="192.168.1.10"/>
+              </div>
+              <div class="fg">
+                <label>Porta</label>
+                <input class="finput" type="number" id="cfg-db-port" placeholder="1433"/>
+                <div class="fhint">1433/5432/3306</div>
+              </div>
+            </div>
+            <div class="fg">
+              <label>Banco de Dados <span class="req">*</span></label>
+              <input class="finput" type="text" id="cfg-db-name" placeholder="nome_do_banco"/>
+            </div>
+            <div class="frow">
+              <div class="fg">
+                <label>Usuário <span class="req">*</span></label>
+                <input class="finput" type="text" id="cfg-db-user" placeholder="sa"/>
+              </div>
+              <div class="fg">
+                <label>Senha <span class="req">*</span></label>
+                <input class="finput" type="password" id="cfg-db-pass" placeholder="••••••••" autocomplete="new-password"/>
+                <div class="fhint" id="cfg-db-pass-hint"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Status message -->
+      <div id="cfg-status" style="display:none;margin-top:16px"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Toast stack ── -->
+<div class="toast-stack" id="toast-stack"></div>
+
 <script>
-  let selectedDatasetId = null;
-  let selectedDatasetName = '';
-  let selectedWorkspaceId = null;
-  let isLoading = false;
-  let chatHistory = []; // last N exchanges for context
+// ── State ──
+let selectedDatasetId = null;
+let selectedDataset = null;
+let selectedWorkspaceId = null;
+let selectedReportName = null;
+let configReturnView = 'list';
+let isLoading = false;
+let chatHistory = [];
+let allReports = [];
+let allDatasets = [];
 
-  window.addEventListener('DOMContentLoaded', () => {
-    loadWorkspaces();
-    initDivider();
-    showWelcome();
+// ── Navigation ──
+function navTo(view) {
+  ['list','report','config'].forEach(v => {
+    document.getElementById('view-' + v).classList.toggle('hidden', v !== view);
   });
+  // Nav active state
+  document.getElementById('nav-dashboards').classList.toggle('active', view === 'list' || view === 'report');
+}
 
-  // ── Divider ──
-  function initDivider() {
-    const divider = document.getElementById('divider');
-    const main = document.querySelector('.main');
-    const paneReport = document.getElementById('pane-report');
-    const paneChat = document.getElementById('pane-chat');
-    let dragging = false, startX = 0, startW = 0;
+// ── Init ──
+window.addEventListener('DOMContentLoaded', () => {
+  initAuth();
+  initResize();
+  showWelcome();
+  navTo('list');
+});
 
-    divider.addEventListener('mousedown', e => {
-      dragging = true;
-      startX = e.clientX;
-      startW = paneReport.getBoundingClientRect().width;
-      divider.classList.add('dragging');
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
+// ── Resize handle ──
+function initResize() {
+  const handle = document.getElementById('resize-handle');
+  const paneReport = document.getElementById('pane-report');
+  const paneChat = document.getElementById('pane-chat');
+  let dragging = false, startX = 0, startW = 0;
+  handle.addEventListener('mousedown', e => {
+    dragging = true; startX = e.clientX;
+    startW = paneReport.getBoundingClientRect().width;
+    handle.classList.add('active');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const reportChat = paneReport.parentElement;
+    const total = reportChat.getBoundingClientRect().width - 4;
+    const nw = Math.max(300, Math.min(total - 300, startW + (e.clientX - startX)));
+    paneReport.style.flex = 'none';
+    paneReport.style.width = nw + 'px';
+    paneChat.style.width = (total - nw) + 'px';
+  });
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove('active');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+}
+
+// ── Auth ──
+let _authToken = null;
+let _currentUser = null;
+
+async function initAuth() {
+  const token = localStorage.getItem('titanbi_token');
+  if (!token) { showLogin(); return; }
+  try {
+    const resp = await fetch('/api/me', { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!resp.ok) throw new Error();
+    const user = await resp.json();
+    _authToken = token;
+    _currentUser = user;
+    showApp();
+  } catch {
+    localStorage.removeItem('titanbi_token');
+    showLogin();
+  }
+}
+
+function showLogin() {
+  document.getElementById('login-wrap').style.display = 'flex';
+  document.getElementById('main-nav').style.display = 'none';
+  document.getElementById('main-body').style.display = 'none';
+  setTimeout(() => document.getElementById('login-email').focus(), 100);
+}
+
+function showApp() {
+  document.getElementById('login-wrap').style.display = 'none';
+  document.getElementById('main-nav').style.display = '';
+  document.getElementById('main-body').style.display = '';
+  if (_currentUser) {
+    const name = _currentUser.name || _currentUser.email;
+    const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    const elName = document.getElementById('nav-user-name');
+    const elRole = document.getElementById('nav-user-role');
+    const elAv   = document.getElementById('nav-user-av');
+    if (elName) elName.textContent = name;
+    if (elRole) elRole.textContent = _currentUser.email;
+    if (elAv)   elAv.textContent   = initials;
+  }
+  loadWorkspaces();
+}
+
+function confirmLogout() {
+  if (confirm('Deseja sair da sua conta?')) logout();
+}
+
+function logout() {
+  localStorage.removeItem('titanbi_token');
+  _authToken = null;
+  _currentUser = null;
+  // Reset nav display
+  const elName = document.getElementById('nav-user-name');
+  const elRole = document.getElementById('nav-user-role');
+  const elAv   = document.getElementById('nav-user-av');
+  if (elName) elName.textContent = 'Carregando…';
+  if (elRole) elRole.textContent = '';
+  if (elAv)   elAv.textContent   = '—';
+  showLogin();
+}
+
+function togglePassVis() {
+  const inp = document.getElementById('login-pass');
+  const icon = document.getElementById('eye-icon');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/>';
+  } else {
+    inp.type = 'password';
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-err');
+  const btn = document.getElementById('login-btn');
+  err.textContent = '';
+  if (!email || !pass) { err.textContent = 'Preencha e-mail e senha.'; return; }
+  btn.disabled = true; btn.textContent = 'Entrando…';
+  try {
+    const resp = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass }),
     });
-    document.addEventListener('mousemove', e => {
-      if (!dragging) return;
-      const total = main.getBoundingClientRect().width - 4;
-      const newW = Math.max(300, Math.min(total - 300, startW + (e.clientX - startX)));
-      paneReport.style.flex = 'none';
-      paneReport.style.width = newW + 'px';
-      paneChat.style.width = (total - newW) + 'px';
+    if (!resp.ok) { const d = await resp.json(); throw new Error(d.detail || 'Erro ao autenticar'); }
+    const data = await resp.json();
+    localStorage.setItem('titanbi_token', data.access_token);
+    _authToken = data.access_token;
+    _currentUser = data.user;
+    showApp();
+  } catch (e) {
+    err.textContent = e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+}
+
+
+// ── API helper ──
+async function api(path, options = {}) {
+  if (_authToken) {
+    options.headers = { ...(options.headers || {}), 'Authorization': `Bearer ${_authToken}` };
+  }
+  const resp = await fetch(path, options);
+  if (resp.status === 401) {
+    localStorage.removeItem('titanbi_token');
+    _authToken = null;
+    showLogin();
+    throw new Error('Sessão expirada. Faça login novamente.');
+  }
+  if (!resp.ok) {
+    let msg = `HTTP ${resp.status}`;
+    try { const d = await resp.json(); msg = d.detail || JSON.stringify(d); } catch {}
+    throw new Error(msg);
+  }
+  return resp.json();
+}
+
+// ── Workspaces ──
+async function loadWorkspaces() {
+  const sel = document.getElementById('ws-select');
+  try {
+    const data = await api('/api/workspaces');
+    sel.innerHTML = '<option value="">Selecione um workspace</option>';
+    data.forEach(ws => sel.innerHTML += `<option value="${ws.id}">${ws.name}</option>`);
+  } catch {
+    sel.innerHTML = '<option value="">Erro ao carregar</option>';
+  }
+}
+
+async function onWorkspaceChange() {
+  const wsId = document.getElementById('ws-select').value;
+  selectedWorkspaceId = wsId || null;
+  allDatasets = [];
+  renderDatasetTable([]);
+
+  if (!wsId) {
+    document.getElementById('ds-tbody').innerHTML = '<tr><td colspan="4" class="tbl-loading">Selecione um workspace</td></tr>';
+    return;
+  }
+
+  document.getElementById('ds-tbody').innerHTML = '<tr><td colspan="4" class="tbl-loading"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin" style="margin-right:6px"><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/></svg>Carregando datasets...</td></tr>';
+
+  try {
+    const [datasets, reports] = await Promise.all([
+      api(`/api/datasets/${wsId}`),
+      api(`/api/reports/${wsId}`).catch(() => []),
+    ]);
+    allDatasets = datasets || [];
+    allReports = reports || [];
+    // Load configs for all datasets
+    await Promise.all(allDatasets.map(async ds => {
+      try { ds._cfg = await api(`/api/config/${ds.id}`); } catch { ds._cfg = {}; }
+    }));
+    renderDatasetTable(allDatasets);
+  } catch (e) {
+    document.getElementById('ds-tbody').innerHTML = `<tr><td colspan="4" class="tbl-empty">Erro: ${escHtml(e.message)}</td></tr>`;
+  }
+}
+
+function renderDatasetTable(datasets) {
+  const tbody = document.getElementById('ds-tbody');
+  if (!datasets.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="tbl-empty">Nenhum dataset encontrado. Sincronize os metadados.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = datasets.map(ds => {
+    const cfg = ds._cfg || {};
+    const hasRlsCfg = cfg.rls_username && cfg.rls_role;
+    const hasDbCfg = cfg.db_host && cfg.has_password;
+
+    let typeChip = '';
+    if (ds.is_gateway) typeChip = '<span class="chip neutral">Gateway</span>';
+    else if (ds.is_rls) typeChip = '<span class="chip neutral">Acesso restrito</span>';
+    else typeChip = '<span class="chip info">◈ Power BI</span>';
+
+    let statusChip = '';
+    if (ds.is_gateway && hasDbCfg) statusChip = `<span class="chip ok">✓ IA ativa</span>`;
+    else if (ds.is_rls && hasRlsCfg) statusChip = `<span class="chip ok">✓ IA ativa</span>`;
+    else if (ds.has_schema) statusChip = `<span class="chip ok">✓ IA ativa</span>`;
+    else statusChip = `<span class="chip neutral">IA não configurada</span>`;
+
+    return `<tr>
+      <td>
+        <div class="ds-name">${escHtml(ds.name)}</div>
+        <div class="ds-id">${escHtml(ds.id.substring(0, 20))}…</div>
+      </td>
+      <td>${typeChip}</td>
+      <td>${statusChip}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary btn-sm" onclick="openConfigFor('${escHtml(ds.id)}')" title="Configurar">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Configurar
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="openDashboard('${escHtml(ds.id)}')" title="Visualizar">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Visualizar
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Open Dashboard (Report + Chat) ──
+async function openDashboard(dsId) {
+  const ds = allDatasets.find(d => d.id === dsId);
+  if (!ds) return;
+
+  selectedDatasetId = dsId;
+  selectedDataset = { ...ds };
+  selectedWorkspaceId = selectedWorkspaceId;
+
+  // Update report selector
+  const rptSel = document.getElementById('report-select');
+  const dsReports = allReports.filter(r => r.datasetId === dsId || !r.datasetId);
+  rptSel.innerHTML = '<option value="">Selecione um relatório</option>';
+  dsReports.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r.id;
+    opt.dataset.wsId = selectedWorkspaceId;
+    opt.textContent = r.name;
+    rptSel.appendChild(opt);
+  });
+  if (!dsReports.length) {
+    // Fallback: show all reports
+    allReports.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r.id;
+      opt.dataset.wsId = selectedWorkspaceId;
+      opt.textContent = r.name;
+      rptSel.appendChild(opt);
     });
-    document.addEventListener('mouseup', () => {
-      if (!dragging) return;
-      dragging = false;
-      divider.classList.remove('dragging');
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
+  }
+  rptSel.disabled = allReports.length === 0;
+
+  // Auto-load first report
+  const reportsForDs = allReports.filter(r => r.datasetId === dsId || !r.datasetId);
+  const firstList = reportsForDs.length ? reportsForDs : allReports;
+  if (firstList.length > 0) {
+    rptSel.value = firstList[0].id;
+  }
+
+  // Update chat header
+  document.getElementById('view-ds-name').textContent = ds.name;
+  document.getElementById('chat-ds-label').textContent = ds.name;
+  document.getElementById('config-btn').style.display = '';
+
+  chatHistory = [];
+  updateChatState();
+  updateAlertStrip();
+
+  navTo('report');
+  clearChat();
+  // Auto-load first report after navigation
+  if (firstList.length > 0) loadReport();
+}
+
+// ── Config Screen ──
+function openConfigFor(dsId, returnView) {
+  const ds = allDatasets.find(d => d.id === dsId);
+  if (!ds) return;
+
+  selectedDataset = { ...ds };
+  configReturnView = returnView || 'list';
+
+  populateConfigForm(ds);
+  navTo('config');
+}
+
+function openConfigForCurrent() {
+  if (!selectedDataset) return;
+  configReturnView = 'report';
+  populateConfigForm(selectedDataset);
+  navTo('config');
+}
+
+function populateConfigForm(ds) {
+  const cfg = ds._cfg || {};
+  const noFlags = !ds.is_gateway && !ds.is_rls && !ds.has_schema;
+
+  // Dataset info card
+  document.getElementById('cfg-ds-name').textContent = ds.name;
+  document.getElementById('cfg-ds-id').textContent = ds.id;
+
+  let ico = '⚙️', iconBg = 'var(--blue-light)';
+  if (ds.is_gateway) { ico = '🗄️'; iconBg = 'var(--red-bg)'; }
+  else if (ds.is_rls) { ico = '🔐'; iconBg = 'var(--yellow-bg)'; }
+  const iconEl = document.getElementById('cfg-ds-icon');
+  iconEl.textContent = ico;
+  iconEl.style.background = iconBg;
+
+  let chips = '';
+  if (ds.is_gateway) chips += '<span class="chip neutral">Gateway</span>';
+  if (ds.is_rls) chips += '<span class="chip neutral">Acesso restrito</span>';
+  if (!ds.is_gateway && !ds.is_rls && ds.has_schema) chips += '<span class="chip ok">✓ IA ativa</span>';
+  if (noFlags) chips += '<span class="chip neutral">IA não configurada</span>';
+  document.getElementById('cfg-ds-chips').innerHTML = chips;
+
+  // RLS badge
+  const rlsBadge = document.getElementById('rls-req-badge');
+  rlsBadge.className = 'chip ' + (ds.is_rls ? 'info' : 'neutral');
+  rlsBadge.textContent = ds.is_rls ? 'Necessário' : 'Opcional';
+
+  // DB badge
+  const dbBadge = document.getElementById('db-req-badge');
+  dbBadge.className = 'chip ' + (ds.is_gateway ? 'err' : 'neutral');
+  dbBadge.textContent = ds.is_gateway ? 'Obrigatório' : 'Opcional';
+
+  // Pre-fill fields
+  document.getElementById('cfg-rls-user').value = cfg.rls_username || '';
+  document.getElementById('cfg-rls-role').value = cfg.rls_role || '';
+  document.getElementById('cfg-db-dialect').value = cfg.db_dialect || 'mssql';
+  document.getElementById('cfg-db-host').value = cfg.db_host || '';
+  document.getElementById('cfg-db-port').value = cfg.db_port || '';
+  document.getElementById('cfg-db-name').value = cfg.db_name || '';
+  document.getElementById('cfg-db-user').value = cfg.db_user || '';
+  document.getElementById('cfg-db-pass').value = '';
+  document.getElementById('cfg-db-pass').placeholder = cfg.has_password ? '(mantém senha atual)' : '••••••••';
+  document.getElementById('cfg-db-pass-hint').textContent = cfg.has_password ? 'Deixe em branco para manter a senha atual' : '';
+
+  // Back button label
+  document.getElementById('config-back-btn').innerHTML = `
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    ${configReturnView === 'report' ? 'Voltar ao Dashboard' : 'Dashboards'}`;
+
+  const cfgStatus = document.getElementById('cfg-status');
+  cfgStatus.style.display = 'none';
+}
+
+function closeConfig() {
+  navTo(configReturnView);
+}
+
+async function saveConfig() {
+  const ds = selectedDataset;
+  if (!ds) return;
+
+  const btn = document.getElementById('save-cfg-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/></svg> Salvando...';
+
+  const cfgStatus = document.getElementById('cfg-status');
+  cfgStatus.style.display = 'none';
+
+  const payload = {
+    rls_username: document.getElementById('cfg-rls-user').value.trim() || null,
+    rls_role: document.getElementById('cfg-rls-role').value.trim() || null,
+    db_dialect: document.getElementById('cfg-db-dialect').value || null,
+    db_host: document.getElementById('cfg-db-host').value.trim() || null,
+    db_port: parseInt(document.getElementById('cfg-db-port').value) || null,
+    db_name: document.getElementById('cfg-db-name').value.trim() || null,
+    db_user: document.getElementById('cfg-db-user').value.trim() || null,
+    db_password: document.getElementById('cfg-db-pass').value || null,
+  };
+
+  try {
+    const result = await api(`/api/config/${ds.id}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
     });
-  }
 
-  // ── Workspaces ──
-  async function loadWorkspaces() {
-    const sel = document.getElementById('ws-select');
-    try {
-      const data = await api('/api/workspaces');
-      sel.innerHTML = '<option value="">Selecione um workspace</option>';
-      data.forEach(ws => sel.innerHTML += `<option value="${ws.id}">${ws.name}</option>`);
-      sel.disabled = false;
-    } catch {
-      sel.innerHTML = '<option value="">Erro ao carregar</option>';
-      sel.disabled = false;
-    }
-  }
+    let detail = '';
+    if (result.rls_sync?.tables) detail = ` — ${result.rls_sync.tables} tabelas sincronizadas`;
+    if (result.db_sync?.tables) detail = ` — ${result.db_sync.tables} tabelas importadas`;
 
-  async function onWorkspaceChange() {
-    const wsId = document.getElementById('ws-select').value;
-    selectedWorkspaceId = wsId || null;
-    selectedDatasetId = null;
-    updateChatState();
-
-    const dsSel = document.getElementById('ds-select');
-    const rptSel = document.getElementById('report-select');
-    const loadBtn = document.getElementById('load-report-btn');
-
-    if (!wsId) {
-      dsSel.innerHTML = '<option value="">Selecione um workspace</option>';
-      dsSel.disabled = true;
-      rptSel.innerHTML = '<option value="">Selecione um workspace</option>';
-      rptSel.disabled = true;
-      loadBtn.disabled = true;
-      return;
-    }
-
-    // Datasets — await (Supabase, rápido)
-    dsSel.innerHTML = '<option value="">Carregando datasets...</option>';
-    dsSel.disabled = true;
-    try {
-      const data = await api(`/api/datasets/${wsId}`);
-      if (!data || data.length === 0) {
-        dsSel.innerHTML = '<option value="">Nenhum dataset encontrado — sincronize</option>';
-      } else {
-        const withSchema = data.filter(d => d.has_schema).length;
-        dsSel.innerHTML = `<option value="">Selecione um dataset (${withSchema} com schema)</option>`;
-        data.forEach(ds => {
-          const opt = document.createElement('option');
-          opt.value = ds.id;
-          opt.disabled = !ds.has_schema;
-          opt.textContent = ds.has_schema ? ds.name : `⚠ ${ds.name} — sem schema`;
-          dsSel.appendChild(opt);
-        });
-        dsSel.disabled = false;
-      }
-    } catch (e) {
-      dsSel.innerHTML = `<option value="">Erro: ${e.message}</option>`;
-    }
-
-    // Relatórios — fire and forget (Power BI API, pode demorar)
-    rptSel.innerHTML = '<option value="">Carregando relatórios...</option>';
-    rptSel.disabled = true;
-    loadBtn.disabled = true;
-    api(`/api/reports/${wsId}`)
-      .then(data => {
-        if (data.length === 0) {
-          rptSel.innerHTML = '<option value="">Nenhum relatório encontrado</option>';
-        } else {
-          rptSel.innerHTML = '<option value="">Selecione um relatório</option>';
-          data.forEach(r => {
-            const opt = document.createElement('option');
-            opt.value = r.id;
-            opt.dataset.embed = r.embedUrl || '';
-            opt.textContent = r.name;
-            rptSel.appendChild(opt);
-          });
-          rptSel.disabled = false;
-          loadBtn.disabled = false;
-        }
-      })
-      .catch(() => {
-        rptSel.innerHTML = '<option value="">Erro ao carregar relatórios</option>';
-      });
-  }
-
-  function onDatasetChange() {
-    const sel = document.getElementById('ds-select');
-    selectedDatasetId = sel.value || null;
-    selectedDatasetName = sel.options[sel.selectedIndex]?.text || '';
-    chatHistory = []; // reset history when dataset changes
-    updateChatState();
-  }
-
-  // ── Report ──
-  async function loadReport() {
-    const rptSel = document.getElementById('report-select');
-    const reportId = rptSel.value;
-    if (!reportId || !selectedWorkspaceId) return;
-
-    const btn = document.getElementById('load-report-btn');
-    btn.disabled = true;
-    btn.innerHTML = `<svg class="spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Carregando...`;
-
-    try {
-      const { url, token } = await api(`/api/report-url/${selectedWorkspaceId}/${reportId}`);
-      const frame = document.getElementById('report-frame');
-      const placeholder = document.getElementById('report-placeholder');
-      const reportName = rptSel.options[rptSel.selectedIndex]?.text || 'Relatório';
-
-      frame.style.display = 'block';
-      placeholder.style.display = 'none';
-
-      const pbi = window['powerbi'];
-      if (!pbi) throw new Error('Power BI SDK não carregou. Verifique conexão com internet.');
-      pbi.reset(frame);
-      const report = pbi.embed(frame, {
-        type: 'report',
-        id: reportId,
-        embedUrl: url,
-        accessToken: token,
-        tokenType: 1,
-        settings: { navContentPaneEnabled: true, filterPaneEnabled: false },
-      });
-      report.on('error', ev => console.error('PBI error', ev.detail));
-      document.getElementById('report-title').textContent = reportName;
-      document.getElementById('report-badge').style.display = 'inline';
-      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> Recarregar`;
-    } catch (e) {
-      alert('Erro ao carregar relatório: ' + e.message);
-      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> Abrir Relatório`;
-    } finally {
-      btn.disabled = false;
-    }
-  }
-
-  // ── Sync ──
-  async function syncMetadata(force = false) {
-    const btn = document.getElementById('sync-btn');
-    const forceBtn = document.getElementById('force-btn');
-    const icon = document.getElementById('sync-icon');
-    const msg = document.getElementById('sync-msg');
-    btn.disabled = true;
-    forceBtn.disabled = true;
-    icon.classList.add('spin');
-    msg.textContent = force ? 'Resync completo em andamento...' : 'Sincronizando...';
-    try {
-      const r = await api(`/api/workspaces/sync?force=${force}`, { method: 'POST' });
-      msg.textContent = `✓ ${r.synced} com schema | ${r.failed} falharam | ${r.skipped} pulados`;
-      if (r.errors && r.errors.length > 0) {
-        const errList = r.errors.map(e => `• ${e.name}: ${e.error}`).join('\n');
-        console.warn('Datasets sem schema:\n' + errList);
-        msg.title = errList;
-      }
-      await loadWorkspaces();
-    } catch (e) {
-      msg.textContent = '✗ Erro: ' + e.message;
-    } finally {
-      btn.disabled = false;
-      forceBtn.disabled = false;
-      icon.classList.remove('spin');
-      setTimeout(() => msg.textContent = '', 6000);
-    }
-  }
-
-  // ── Chat state ──
-  function updateChatState() {
-    const ok = !!selectedDatasetId && !isLoading;
-    const input = document.getElementById('input');
-    const sendBtn = document.getElementById('send-btn');
-    const dot = document.getElementById('status-dot');
-    const statusText = document.getElementById('status-text');
-    const label = document.getElementById('chat-ds-label');
-
-    input.disabled = !ok;
-    sendBtn.disabled = !ok;
-
-    if (ok) {
-      input.placeholder = 'Faça uma pergunta sobre os dados...';
-      dot.style.background = 'var(--green)';
-      statusText.textContent = 'Pronto para responder';
-      label.textContent = selectedDatasetName;
+    if (result.warning) {
+      cfgStatus.className = 'config-status';
+      cfgStatus.style.cssText = 'display:flex;background:var(--yellow-bg);border:1px solid var(--yellow-border);color:#92400e;margin-top:14px;padding:10px 14px;border-radius:var(--radius-sm);font-size:12.5px;gap:8px;align-items:flex-start';
+      cfgStatus.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span><strong>Credenciais salvas.</strong> ${escHtml(result.warning)}</span>`;
     } else {
-      input.placeholder = 'Selecione um dataset para começar...';
-      dot.style.background = 'var(--muted-light)';
-      statusText.textContent = selectedDatasetId ? 'Processando...' : 'Aguardando dataset';
-      label.textContent = selectedDatasetId ? selectedDatasetName : 'Nenhum dataset selecionado';
+      cfgStatus.className = 'config-status ok';
+      cfgStatus.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Configuração salva com sucesso${detail}`;
+      cfgStatus.style.display = 'flex';
     }
-  }
 
-  // ── Chat ──
-  async function sendMessage() {
-    const input = document.getElementById('input');
-    const text = input.value.trim();
-    if (!text || !selectedDatasetId || isLoading) return;
-
-    input.value = '';
-    autoResize(input);
-    appendUserMsg(text);
-    const typingId = appendTyping();
-
-    isLoading = true;
-    updateChatState();
-
+    // Reload config on the dataset object
     try {
-      const r = await api('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question: text,
-          dataset_id: selectedDatasetId,
-          history: chatHistory.slice(-6),
-        }),
-      });
-      removeTyping(typingId);
-      appendBotMsg(r);
-      // Save to history with raw data so AI can answer follow-ups without new DAX
-      chatHistory.push({ role: 'user', content: text });
-      const dataCtx = r.rows && r.rows.length
-        ? `\n[Dados retornados: ${JSON.stringify(r.rows.slice(0, 5))}]`
-        : '';
-      chatHistory.push({ role: 'assistant', content: r.answer + dataCtx });
-      if (chatHistory.length > 12) chatHistory = chatHistory.slice(-12);
-    } catch (e) {
-      removeTyping(typingId);
-      appendSimpleBot('❌ ' + e.message);
-    } finally {
-      isLoading = false;
-      updateChatState();
+      const cfg = await api(`/api/config/${ds.id}`);
+      selectedDataset._cfg = cfg;
+      const dsInList = allDatasets.find(d => d.id === ds.id);
+      if (dsInList) { dsInList._cfg = cfg; }
+    } catch {}
+
+    // Refresh table if we have datasets loaded
+    if (allDatasets.length) renderDatasetTable(allDatasets);
+
+    updateChatState();
+    updateAlertStrip();
+    toast('Configuração salva com sucesso', 'ok');
+
+    setTimeout(() => closeConfig(), 1200);
+  } catch (e) {
+    cfgStatus.className = 'config-status err';
+    cfgStatus.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> <strong>Erro:</strong> ${escHtml(e.message)}`;
+    cfgStatus.style.display = 'flex';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Salvar e Conectar';
+  }
+}
+
+// ── Chat state ──
+function updateChatState() {
+  const ds = selectedDataset;
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  const inp = document.getElementById('input');
+  const btn = document.getElementById('send-btn');
+
+  if (!ds) {
+    dot.className = 'status-dot';
+    txt.textContent = 'Aguardando dataset';
+    inp.placeholder = 'Selecione um dataset...';
+    inp.disabled = true;
+    btn.disabled = true;
+    document.getElementById('alert-strip').style.display = 'none';
+    return;
+  }
+
+  const cfg = ds._cfg || {};
+  const hasRlsCfg = cfg.rls_username && cfg.rls_role;
+  const hasDbCfg = cfg.db_host && cfg.has_password;
+  const needsRls = ds.is_rls && !hasRlsCfg;
+  const needsDb = ds.is_gateway && !hasDbCfg;
+  const noSchema = !ds.has_schema && !ds.is_rls && !ds.is_gateway && !hasRlsCfg && !hasDbCfg;
+
+  if (needsRls || needsDb) {
+    dot.className = 'status-dot warn';
+    txt.textContent = 'Acesso pendente';
+    inp.placeholder = 'Finalize a configuração de acesso para começar...';
+    inp.disabled = true;
+    btn.disabled = true;
+  } else if (noSchema) {
+    dot.className = 'status-dot warn';
+    txt.textContent = 'Dados não disponíveis';
+    inp.placeholder = 'Este relatório ainda não está pronto para consultas...';
+    inp.disabled = true;
+    btn.disabled = true;
+  } else {
+    dot.className = 'status-dot on';
+    txt.textContent = 'Pronto para consultas';
+    inp.placeholder = `Pergunte sobre ${ds.name}...`;
+    inp.disabled = false;
+    btn.disabled = false;
+    inp.focus();
+  }
+}
+
+function updateAlertStrip() {
+  const strip = document.getElementById('alert-strip');
+  const ds = selectedDataset;
+  if (!ds) { strip.style.display = 'none'; return; }
+
+  const cfg = ds._cfg || {};
+  const hasRlsCfg = cfg.rls_username && cfg.rls_role;
+  const hasDbCfg = cfg.db_host && cfg.has_password;
+  const needsRls = ds.is_rls && !hasRlsCfg;
+  const needsDb = ds.is_gateway && !hasDbCfg;
+
+  if (needsRls || needsDb) {
+    strip.className = 'alert-strip warn';
+    strip.innerHTML = `Este relatório requer configuração de acesso antes de consultar. <a onclick="openConfigForCurrent()">Configurar agora</a>`;
+    strip.style.display = '';
+  } else if (hasRlsCfg || hasDbCfg) {
+    strip.className = 'alert-strip ok';
+    strip.innerHTML = `Acesso configurado para <strong>${cfg.rls_username || cfg.db_host}</strong>. &nbsp;<a onclick="openConfigForCurrent()">Editar</a>`;
+    strip.style.display = '';
+  } else {
+    strip.style.display = 'none';
+  }
+}
+
+// ── Report ──
+async function loadReport() {
+  const sel = document.getElementById('report-select');
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.value) return;
+
+  const reportId = opt.value;
+  selectedReportName = opt.textContent.trim();
+  const wsId = selectedWorkspaceId;
+  const cfg = selectedDataset?._cfg || {};
+  const rlsParams = (cfg.rls_username && cfg.rls_role && selectedDatasetId)
+    ? `?dataset_id=${encodeURIComponent(selectedDatasetId)}&username=${encodeURIComponent(cfg.rls_username)}&role=${encodeURIComponent(cfg.rls_role)}`
+    : '';
+  const container = document.getElementById('report-container');
+  const empty = document.getElementById('report-empty');
+
+  empty.style.display = 'none';
+  container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:13px">Carregando relatório...</div>';
+  container.style.display = 'block';
+
+  try {
+    const data = await api(`/api/report-url/${wsId}/${reportId}${rlsParams}`);
+    container.innerHTML = '';
+    if (typeof powerbi !== 'undefined') {
+      const models = window['powerbi-client'].models;
+      const embedConfig = {
+        type: 'report', id: reportId,
+        embedUrl: data.url,
+        accessToken: data.token,
+        tokenType: models.TokenType.Embed,
+        settings: {
+          panes: { filters: { visible: false }, pageNavigation: { visible: true } },
+        },
+      };
+      powerbi.reset(container);
+      powerbi.embed(container, embedConfig);
+    } else {
+      const iframe = document.createElement('iframe');
+      iframe.style.cssText = 'width:100%;height:100%;border:none;position:absolute;top:0;left:0';
+      iframe.src = `${data.url}&token=${data.token}`;
+      container.appendChild(iframe);
     }
+  } catch (e) {
+    container.innerHTML = `<div style="padding:20px;color:var(--red);font-size:13px">Erro ao carregar relatório: ${escHtml(e.message)}</div>`;
   }
+}
 
-  function appendUserMsg(text) {
-    const box = document.getElementById('messages');
-    const div = document.createElement('div');
-    div.className = 'msg user';
-    div.innerHTML = `
-      <div class="msg-avatar user">F</div>
-      <div class="bubble-wrap"><div class="bubble user">${escHtml(text)}</div></div>`;
-    box.appendChild(div);
-    scrollBottom();
-  }
+// ── Chat ──
+function clearChat() {
+  chatHistory = [];
+  document.getElementById('messages').innerHTML = '';
+  showWelcome();
+}
 
-  function appendSimpleBot(text) {
-    const box = document.getElementById('messages');
-    const div = document.createElement('div');
-    div.className = 'msg';
-    div.innerHTML = `
-      <div class="msg-avatar bot">AI</div>
-      <div class="bubble-wrap"><div class="bubble bot">${escHtml(text)}</div></div>`;
-    box.appendChild(div);
-    scrollBottom();
-  }
-
-  function appendBotMsg(r) {
-    const box = document.getElementById('messages');
-    const uid = 'p' + Date.now();
-
-    let daxPanel = '';
-    if (r.dax_query) {
-      daxPanel = `
-        <div class="result-panel">
-          <div class="result-panel-header" onclick="togglePanel('dax-${uid}',this)">
-            <span>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-              Query DAX gerada
-            </span>
-            <span id="dax-arrow-${uid}">▼</span>
+function showWelcome() {
+  const msgs = document.getElementById('messages');
+  const dsName = selectedDataset?.name || '';
+  msgs.innerHTML = `
+    <div class="msg assistant">
+      <div class="msg-av bot">Ti</div>
+      <div class="bwrap">
+        <div class="bubble bot">
+          <div class="welcome">
+            <h4>Olá! Sou a IA TitanBi</h4>
+            <p>${dsName ? `Estou pronto para analisar os dados de <strong>${escHtml(dsName)}</strong>.` : 'Selecione um relatório para começar.'} Faça sua pergunta em português e receba uma análise clara e objetiva.</p>
+            <ul>
+              <li>Resultados e tendências do período</li>
+              <li>Comparativos, metas e variações</li>
+              <li>Rankings e indicadores estratégicos</li>
+            </ul>
           </div>
-          <div class="panel-body" id="dax-${uid}">
-            <pre class="dax">${escHtml(r.dax_query)}</pre>
-          </div>
-        </div>`;
+        </div>
+      </div>
+    </div>`;
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function renderMarkdown(text) {
+  text = text.replace(/(\|[^\n]+\|\n\|[-| :]+\|\n(?:\|[^\n]+\|\n?)*)/g, block => {
+    const lines = block.trim().split('\n');
+    const ths = lines[0].split('|').filter(c=>c.trim()).map(c=>`<th>${c.trim()}</th>`).join('');
+    const trs = lines.slice(2).map(line => {
+      const tds = line.split('|').filter(c=>c.trim()).map(c=>`<td>${c.trim()}</td>`).join('');
+      return `<tr>${tds}</tr>`;
+    }).join('');
+    return `<div class="tbl-wrap"><table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table></div>`;
+  });
+  text = text.replace(/```[\w]*\n?([\s\S]*?)```/g, (_,c) => `<pre><code>${c.trim()}</code></pre>`);
+  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+  text = text.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  text = text.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  text = text.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+  text = text.replace(/^[-•] (.+)$/gm, '<li>$1</li>');
+  text = text.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+  text = text.replace(/(<li>[\s\S]*?<\/li>\n?)+/g, m => `<ul>${m}</ul>`);
+  const parts = text.split(/\n{2,}/);
+  text = parts.map(p => {
+    p = p.trim(); if (!p) return '';
+    if (/^<(h[1-3]|ul|pre|div)/.test(p)) return p;
+    return `<p>${p.replace(/\n/g,'<br>')}</p>`;
+  }).filter(Boolean).join('\n');
+  return text;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('input');
+  const question = input.value.trim();
+  if (!question || !selectedDatasetId || isLoading) return;
+
+  isLoading = true;
+  input.value = '';
+  autoResize(input);
+  document.getElementById('send-btn').disabled = true;
+
+  appendUserMsg(question);
+  const typingEl = appendTyping();
+
+  const cfg = selectedDataset?._cfg || {};
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        question,
+        dataset_id: selectedDatasetId,
+        history: chatHistory,
+        effective_username: cfg.rls_username || null,
+        effective_role: cfg.rls_role || null,
+        report_name: selectedReportName || null,
+      }),
+    });
+
+    typingEl.remove();
+
+    if (!resp.ok) {
+      let msg = `Erro HTTP ${resp.status}`;
+      try { const d = await resp.json(); msg = d.detail || msg; } catch {}
+      appendBotMsg(null, null, null, msg);
+    } else {
+      const data = await resp.json();
+      appendBotMsg(data.dax_query, data.rows, data.answer, null);
+      chatHistory.push({role:'user', content: question});
+      chatHistory.push({role:'assistant', content: data.answer || ''});
+      if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
     }
-
-    let tablePanel = '';
-    if (r.rows && r.rows.length > 0) {
-      const cols = Object.keys(r.rows[0]);
-      const header = cols.map(c => `<th>${escHtml(cleanCol(c))}</th>`).join('');
-      const rows = r.rows.slice(0, 100).map(row =>
-        `<tr>${cols.map(c => `<td>${escHtml(String(row[c] ?? ''))}</td>`).join('')}</tr>`
-      ).join('');
-      const more = r.row_count > 100 ? `<div class="tbl-more">Mostrando 100 de ${r.row_count} linhas</div>` : '';
-      tablePanel = `
-        <div class="result-panel">
-          <div class="result-panel-header" onclick="togglePanel('tbl-${uid}',this)">
-            <span>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
-              ${r.row_count} linha${r.row_count !== 1 ? 's' : ''} retornada${r.row_count !== 1 ? 's' : ''}
-            </span>
-            <span id="tbl-arrow-${uid}">▼</span>
-          </div>
-          <div class="panel-body" id="tbl-${uid}">
-            <div class="tbl-wrap"><table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table>${more}</div>
-          </div>
-        </div>`;
-    }
-
-    const div = document.createElement('div');
-    div.className = 'msg';
-    div.innerHTML = `
-      <div class="msg-avatar bot">AI</div>
-      <div class="bubble-wrap">
-        <div class="bubble bot">${escHtml(r.answer)}</div>
-        ${daxPanel}
-        ${tablePanel}
-      </div>`;
-    box.appendChild(div);
-    scrollBottom();
+  } catch (e) {
+    typingEl.remove();
+    appendBotMsg(null, null, null, e.message);
   }
 
-  function togglePanel(id, header) {
-    const body = document.getElementById(id);
-    const isOpen = body.classList.toggle('open');
-    if (header) header.classList.toggle('open', isOpen);
-    const prefix = id.startsWith('dax') ? 'dax-arrow' : 'tbl-arrow';
-    const arrow = document.getElementById(prefix + '-' + id.split('-').slice(1).join('-'));
-    if (arrow) arrow.textContent = isOpen ? '▲' : '▼';
-  }
+  isLoading = false;
+  document.getElementById('send-btn').disabled = false;
+  document.getElementById('input').disabled = false;
+  document.getElementById('input').focus();
+}
 
-  function appendTyping() {
-    const box = document.getElementById('messages');
-    const id = 'typing-' + Date.now();
-    const div = document.createElement('div');
-    div.className = 'msg'; div.id = id;
-    div.innerHTML = `
-      <div class="msg-avatar bot">AI</div>
-      <div class="bubble-wrap">
-        <div class="bubble bot"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
-      </div>`;
-    box.appendChild(div);
-    scrollBottom();
-    return id;
-  }
+function appendUserMsg(text) {
+  const msgs = document.getElementById('messages');
+  const el = document.createElement('div');
+  el.className = 'msg user';
+  el.innerHTML = `<div class="msg-av user">U</div><div class="bwrap"><div class="bubble user">${escHtml(text)}</div></div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
 
-  function removeTyping(id) { document.getElementById(id)?.remove(); }
+function appendTyping() {
+  const msgs = document.getElementById('messages');
+  const el = document.createElement('div');
+  el.className = 'msg assistant';
+  el.innerHTML = `<div class="msg-av bot">Ti</div><div class="bwrap"><div class="bubble bot"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+  return el;
+}
 
-  function showWelcome() {
-    const box = document.getElementById('messages');
-    const div = document.createElement('div');
-    div.className = 'msg';
-    div.innerHTML = `
-      <div class="msg-avatar bot">AI</div>
-      <div class="bubble-wrap">
-        <div class="welcome-card">
-          <h4>👋 Bem-vindo ao Titan IA</h4>
-          <p>Faça perguntas em linguagem natural sobre seus dados do Power BI.</p>
-          <ul>
-            <li>Selecione um workspace na barra lateral</li>
-            <li>Escolha um <strong>Dataset</strong> para perguntas à IA</li>
-            <li>Escolha um <strong>Relatório</strong> para visualizar ao lado</li>
-          </ul>
+function appendBotMsg(query, rows, answer, errorMsg) {
+  const msgs = document.getElementById('messages');
+  const el = document.createElement('div');
+  el.className = 'msg assistant';
+  let inner = '';
+  if (errorMsg) {
+    inner = `<div class="bubble bot" style="border-color:var(--red-border);color:var(--red)"><strong>Erro ao executar consulta</strong><br><br>${escHtml(errorMsg)}</div>`;
+  } else {
+    inner = `<div class="bubble bot">${answer ? renderMarkdown(answer) : '<em style="color:var(--muted)">Sem resposta</em>'}</div>`;
+    if (query) {
+      const panelId = 'p' + Date.now();
+      const hasRows = rows && rows.length > 0;
+      let tableHtml = '';
+      if (hasRows) {
+        const cols = Object.keys(rows[0]);
+        const ths = cols.map(c => `<th>${escHtml(c)}</th>`).join('');
+        const trs = rows.slice(0,50).map(r => `<tr>${cols.map(c=>`<td>${escHtml(String(r[c]??''))}</td>`).join('')}</tr>`).join('');
+        const more = rows.length > 50 ? `<div class="tbl-more">+ ${rows.length-50} linhas omitidas</div>` : '';
+        tableHtml = `<div class="data-tbl-wrap"><table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table></div>${more}`;
+      }
+      inner += `<div class="result-panel">
+        <div class="rp-head" onclick="togglePanel('${panelId}')">
+          <span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Query gerada &nbsp;<span class="chip neutral" style="font-size:10px">${rows?.length||0} linhas</span></span>
+          <svg id="${panelId}-arrow" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="rp-body" id="${panelId}-body">
+          <pre class="dax">${escHtml(query)}</pre>
+          ${hasRows ? tableHtml : '<div class="tbl-more">Sem dados retornados</div>'}
         </div>
       </div>`;
-    box.appendChild(div);
-  }
-
-  // ── Helpers ──
-  async function api(path, opts = {}) {
-    const r = await fetch(path, opts);
-    if (!r.ok) {
-      const e = await r.json().catch(() => ({ detail: r.statusText }));
-      throw new Error(e.detail || JSON.stringify(e));
     }
-    return r.json();
   }
+  el.innerHTML = `<div class="msg-av bot">Ti</div><div class="bwrap">${inner}</div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
 
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function togglePanel(id) {
+  const body = document.getElementById(id + '-body');
+  const arrow = document.getElementById(id + '-arrow');
+  const head = body.previousElementSibling;
+  const open = body.classList.toggle('open');
+  head.classList.toggle('open', open);
+  arrow.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+// ── Sync ──
+async function syncMetadata(force) {
+  const btn = document.getElementById(force ? 'force-btn' : 'sync-btn');
+  const msg = document.getElementById('sync-msg');
+  const icon = document.getElementById('sync-icon');
+  btn.disabled = true;
+  if (icon) icon.classList.add('spin');
+  msg.textContent = 'Sincronizando...';
+  try {
+    const r = await api(`/api/workspaces/sync?force=${force}`, {method:'POST'});
+    msg.textContent = `✓ ${r.synced} sync · ${r.failed} erros`;
+    toast(`Sincronização concluída: ${r.synced} datasets`, 'ok');
+    if (selectedWorkspaceId) onWorkspaceChange();
+  } catch(e) {
+    msg.textContent = `Erro: ${e.message}`;
+    toast(`Erro: ${e.message}`, 'err');
+  } finally {
+    btn.disabled = false;
+    if (icon) icon.classList.remove('spin');
   }
+}
 
-  function cleanCol(c) { return c.replace(/^\w+\[|\]$/g, ''); }
+// ── Toast ──
+function toast(msg, type = 'info') {
+  const stack = document.getElementById('toast-stack');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  const icons = {ok:'✓', err:'✕', info:'i'};
+  el.innerHTML = `<span style="font-weight:700">${icons[type]||'i'}</span><span>${escHtml(msg)}</span>`;
+  stack.appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 3500);
+}
 
-  function scrollBottom() {
-    const box = document.getElementById('messages');
-    box.scrollTop = box.scrollHeight;
-  }
-
-  function autoResize(el) {
-    el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-  }
-
-  function handleKey(e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  }
+// ── Utils ──
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 </script>
 </body>
 </html>

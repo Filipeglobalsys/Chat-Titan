@@ -139,7 +139,7 @@ async def answer_from_context(question: str, history: list) -> str:
     return resp.content[0].text.strip()
 
 
-async def generate_dax(question: str, schema: list, dataset_name: str, history: list = None) -> str:
+async def generate_dax(question: str, schema: list, dataset_name: str, history: list = None, report_name: str = None) -> str:
     schema_text = _schema_to_text(schema)
 
     all_measures = []
@@ -147,9 +147,10 @@ async def generate_dax(question: str, schema: list, dataset_name: str, history: 
         for m in t.get("measures") or []:
             all_measures.append(f"[{m['name']}]")
     measures_hint = f"\nAvailable measures (use ONLY these): {', '.join(all_measures)}" if all_measures else ""
+    report_hint = f"\nActive report: {report_name}" if report_name else ""
 
     system = f"""You are an expert Power BI DAX developer.
-Dataset: {dataset_name}
+Dataset: {dataset_name}{report_hint}
 {measures_hint}
 
 Schema:
@@ -203,18 +204,98 @@ Return ONLY the corrected DAX query."""
     return resp.content[0].text.strip()
 
 
+_SQL_RULES = """
+SQL Rules (follow strictly):
+- Return ONLY the SQL SELECT query — no explanation, no markdown, no code fences
+- SELECT only — never INSERT, UPDATE, DELETE, DROP, EXEC
+- Use exact table and column names from the schema
+- Always add TOP 500 (SQL Server) or LIMIT 500 (PostgreSQL/MySQL) to prevent large results
+- For aggregations use GROUP BY with all non-aggregated columns
+- For date filters use proper date literals for the dialect
+- Never invent table or column names — use ONLY names from the schema
+"""
+
+
+def _schema_to_sql_text(schema: list) -> str:
+    lines = []
+    for table in schema:
+        lines.append(f"Table: {table['name']}")
+        for col in table.get("columns") or []:
+            lines.append(f"  {col['name']} ({col.get('dataType', '')})")
+    return "\n".join(lines)
+
+
+async def generate_sql(question: str, schema: list, db_name: str, dialect: str = "mssql", history: list = None, report_name: str = None) -> str:
+    schema_text = _schema_to_sql_text(schema)
+    dialect_note = {
+        "mssql": "SQL Server dialect — use TOP N instead of LIMIT",
+        "postgresql": "PostgreSQL dialect — use LIMIT N",
+        "mysql": "MySQL dialect — use LIMIT N",
+    }.get(dialect, "Standard SQL")
+    report_hint = f"\nActive report: {report_name}" if report_name else ""
+
+    system = f"""You are an expert SQL developer.
+Database: {db_name}{report_hint}
+Dialect: {dialect_note}
+
+Schema:
+{schema_text}
+
+{_SQL_RULES}"""
+
+    messages = []
+    for h in (history or [])[-6:]:
+        messages.append({"role": h.role, "content": h.content})
+    messages.append({"role": "user", "content": question})
+
+    resp = await client.messages.create(
+        model=_MODEL, max_tokens=1024, system=system, messages=messages,
+    )
+    return resp.content[0].text.strip()
+
+
+async def fix_sql(original_sql: str, error: str, question: str, schema: list, db_name: str, dialect: str = "mssql") -> str:
+    schema_text = _schema_to_sql_text(schema)
+    system = f"""You are an expert SQL developer. Fix the broken SQL query.
+Database: {db_name}
+
+Schema:
+{schema_text}
+
+{_SQL_RULES}"""
+
+    user = f"""The following SQL query returned an error. Fix it.
+
+Original question: {question}
+
+Broken SQL:
+{original_sql}
+
+Error:
+{error}
+
+Return ONLY the corrected SQL query."""
+
+    resp = await client.messages.create(
+        model=_MODEL, max_tokens=1024, system=system,
+        messages=[{"role": "user", "content": user}],
+    )
+    return resp.content[0].text.strip()
+
+
 async def format_answer(question: str, dax: str, rows: list, schema: list, history: list = None) -> str:
     schema_text = _schema_to_text(schema)
     preview = str(rows[:20])
 
-    system = f"""Você é um analista de dados sênior apresentando resultados para um executivo.
+    system = f"""Você é um assessor executivo de dados, apresentando análises diretas para a alta liderança.
 Regras obrigatórias:
-- Responda SEMPRE em português, de forma direta e profissional
-- Use apenas os números exatos presentes nos dados — nunca invente ou extrapole
-- Estrutura: 1) resultado principal em 1-2 frases, 2) tabela com os dados relevantes, 3) até 3 pontos de atenção ou oportunidades de decisão
+- Responda SEMPRE em português, de forma objetiva e executiva
+- Use apenas os números exatos dos dados — nunca invente ou extrapole
+- Estrutura: 1) resultado principal em 1-2 frases diretas, 2) tabela com os dados mais relevantes, 3) até 3 pontos de atenção ou oportunidades de decisão
+- Sem termos técnicos (DAX, SQL, schema, dataset, query) — o leitor é gestor, não técnico
 - Sem emojis, sem linguagem informal, sem introduções longas
-- Destaque variações, concentrações ou anomalias que exijam atenção executiva
-- Se os dados forem insuficientes para uma conclusão, diga claramente
+- Destaque variações, concentrações ou anomalias que exijam atenção da liderança
+- Se os dados forem insuficientes, diga claramente em linguagem de negócio
 
 Schema:
 {schema_text}"""
@@ -228,10 +309,7 @@ Schema:
 
     user = f"""Pergunta: {question}{history_ctx}
 
-DAX executado:
-{dax}
-
-Resultado ({len(rows)} linhas, mostrando até 20):
+Dados retornados ({len(rows)} registros, amostra de até 20):
 {preview}"""
 
     resp = await client.messages.create(

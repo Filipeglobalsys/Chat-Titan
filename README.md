@@ -1,99 +1,35 @@
-# Power BI Copilot
+# Titan BI — Copilot Power BI
 
-Consulte datasets do Power BI usando linguagem natural, com geração automática de DAX via OpenAI.
+Assistente de dados com IA para Power BI: faça perguntas em linguagem natural e receba respostas executivas geradas automaticamente via DAX.
 
 ## Stack
 
-- **Backend**: Node.js + Express
-- **Frontend**: Next.js 14 + Tailwind CSS
-- **Banco**: Supabase (PostgreSQL)
-- **IA**: OpenAI GPT-4o
-- **Auth**: Microsoft Entra ID (OAuth2 Client Credentials)
+- **Backend**: Python 3.11 + FastAPI
+- **Frontend**: HTML/CSS/JS single-page (servido pelo próprio FastAPI)
+- **Banco de metadados**: Supabase (PostgreSQL)
+- **IA**: Anthropic Claude (claude-sonnet-4-6 por padrão)
+- **Auth**: Supabase Auth (email/senha) + Microsoft Entra ID (service principal para Power BI API)
 
-## Configuração Inicial
+## Pré-requisitos
 
-### 1. Pré-requisitos
-
-- Node.js 20+
+- Python 3.11+
 - Conta no [Supabase](https://supabase.com)
 - App Registration no Azure (Entra ID) com permissão `Dataset.ReadWrite.All`
-- Chave da OpenAI API
+- Chave da [Anthropic API](https://console.anthropic.com)
 
-### 2. Azure App Registration
-
-No [Azure Portal](https://portal.azure.com):
-
-1. Acesse **Azure Active Directory → App registrations → New registration**
-2. Defina um nome, clique em **Register**
-3. Anote o **Application (client) ID** e o **Directory (tenant) ID**
-4. Vá em **Certificates & secrets → New client secret** — anote o valor
-5. Vá em **API permissions → Add a permission → Power BI Service**
-6. Adicione: `Dataset.ReadWrite.All`, `Workspace.Read.All`
-7. Clique em **Grant admin consent**
-
-### 3. Supabase
-
-1. Crie um projeto em [supabase.com](https://supabase.com)
-2. Acesse **SQL Editor** e execute o conteúdo de `supabase/migrations/001_initial_schema.sql`
-3. Anote a **URL do projeto** e a **service_role key** (em Project Settings → API)
-
-### 4. Backend
+## Configuração local
 
 ```bash
-cd backend
+cd app
 cp .env.example .env
-# Edite .env com suas credenciais
-npm install
-npm run dev
+# Preencha .env com suas credenciais
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
 ```
 
-### 5. Frontend
-
-```bash
-cd frontend
-cp .env.local.example .env.local
-# NEXT_PUBLIC_API_URL=http://localhost:3001
-npm install
-npm run dev
-```
-
-Acesse: http://localhost:3000
-
-## Uso
-
-1. **Sincronizar Metadados**: Clique em "Sincronizar Metadados" na barra superior para importar workspaces, datasets, tabelas e medidas do Power BI para o Supabase
-2. **Selecionar Workspace e Dataset**: Use os dropdowns no topo
-3. **Fazer Perguntas**: Digite perguntas em português ou inglês no chat
-
-### Exemplos de perguntas
-
-- "Qual o total de vendas em 2024?"
-- "Top 5 clientes por receita"
-- "Compare vendas por região no último trimestre"
-- "Mostre a evolução mensal de novos clientes"
-
-## Arquitetura
-
-```
-Pergunta (PT/EN)
-      ↓
-  OpenAI GPT-4o
-  (Schema do dataset como contexto)
-      ↓
-  Query DAX gerada
-      ↓
-  Power BI executeQueries API
-      ↓
-  Dados retornados
-      ↓
-  OpenAI formata resposta
-      ↓
-  Usuário vê resposta + tabela + DAX
-```
+Acesse: http://localhost:8000
 
 ## Variáveis de Ambiente
-
-### Backend (`backend/.env`)
 
 | Variável | Descrição |
 |----------|-----------|
@@ -102,13 +38,41 @@ Pergunta (PT/EN)
 | `CLIENT_SECRET` | Secret do app registration |
 | `SUPABASE_URL` | URL do projeto Supabase |
 | `SUPABASE_SERVICE_ROLE_KEY` | Chave service role do Supabase |
-| `OPENAI_API_KEY` | Chave da OpenAI |
-| `OPENAI_MODEL` | Modelo (padrão: `gpt-4o`) |
-| `PORT` | Porta do backend (padrão: `3001`) |
-| `CORS_ORIGIN` | Origem permitida (padrão: `http://localhost:3000`) |
+| `ANTHROPIC_API_KEY` | Chave da Anthropic |
+| `ANTHROPIC_MODEL` | Modelo Claude (padrão: `claude-sonnet-4-6`) |
+| `PORT` | Porta do servidor (padrão: `8000`) |
 
-### Frontend (`frontend/.env.local`)
+## Deploy na Vercel
 
-| Variável | Descrição |
-|----------|-----------|
-| `NEXT_PUBLIC_API_URL` | URL do backend |
+1. Importe o repositório no [Vercel](https://vercel.com)
+2. Configure todas as variáveis de ambiente acima em **Project Settings → Environment Variables**
+3. O deploy é automático — `vercel.json` já está configurado
+
+> **Atenção**: funcionalidades de gateway SQL (datasets on-premises) não persistem configuração entre invocações serverless. Para uso completo, faça deploy em servidor dedicado (ex.: Railway, Fly.io, VPS).
+
+## Banco de Dados (Supabase)
+
+Execute as migrações em **SQL Editor** no painel do Supabase:
+
+```
+supabase/migrations/
+```
+
+## Arquitetura
+
+```
+Pergunta (PT)
+     ↓
+ Claude AI
+ (schema do dataset como contexto)
+     ↓
+ Query DAX gerada
+     ↓
+ Power BI executeQueries API
+     ↓
+ Dados retornados
+     ↓
+ Claude formata resposta executiva
+     ↓
+ Usuário vê resposta + tabela
+```
