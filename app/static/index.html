@@ -1167,7 +1167,7 @@ function updateChatState() {
   const hasRlsCfg = cfg.rls_username && cfg.rls_role;
   const hasDbCfg = cfg.db_host && cfg.has_password;
   const needsRls = ds.is_rls && !hasRlsCfg;
-  const needsDb = ds.is_gateway && !hasDbCfg;
+  const needsDb = ds.is_gateway && !hasDbCfg && !ds.has_schema;
   const noSchema = !ds.has_schema && !ds.is_rls && !ds.is_gateway && !hasRlsCfg && !hasDbCfg;
 
   if (needsRls || needsDb) {
@@ -1201,7 +1201,7 @@ function updateAlertStrip() {
   const hasRlsCfg = cfg.rls_username && cfg.rls_role;
   const hasDbCfg = cfg.db_host && cfg.has_password;
   const needsRls = ds.is_rls && !hasRlsCfg;
-  const needsDb = ds.is_gateway && !hasDbCfg;
+  const needsDb = ds.is_gateway && !hasDbCfg && !ds.has_schema;
 
   if (needsRls || needsDb) {
     strip.className = 'alert-strip warn';
