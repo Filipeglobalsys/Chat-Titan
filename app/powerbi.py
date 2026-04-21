@@ -1,3 +1,4 @@
+import re
 import httpx
 from auth import get_access_token, invalidate_token
 
@@ -81,19 +82,31 @@ async def generate_embed_token(
     body: dict = {"accessLevel": "View"}
 
     if username and dataset_id:
+        identity: dict = {"username": username, "datasets": [dataset_id]}
         if roles:
-            # Regular Power BI RLS: username + roles + dataset
-            body["identities"] = [{"username": username, "roles": roles, "datasets": [dataset_id]}]
-            try:
-                return await pbi_post(path, body)
-            except Exception:
-                # Fallback: SSAS/live connection datasets don't accept roles
-                body["identities"] = [{"username": username, "datasets": [dataset_id]}]
-                return await pbi_post(path, body)
-        else:
-            body["identities"] = [{"username": username, "datasets": [dataset_id]}]
+            identity["roles"] = roles
+        body["identities"] = [identity]
 
-    return await pbi_post(path, body)
+    try:
+        return await pbi_post(path, body)
+    except Exception as e:
+        err_str = str(e)
+        # Power BI returns 400 when effectiveIdentity is required for a specific dataset.
+        # Extract the required dataset ID from the error and retry with it.
+        if "effective identity" in err_str.lower():
+            match = re.search(r'dataset\s+([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})', err_str, re.IGNORECASE)
+            if match and username:
+                required_ds = match.group(1)
+                print(f"[EMBED] effectiveIdentity required for dataset {required_ds} — retrying")
+                identity = {"username": username, "datasets": [required_ds]}
+                body["identities"] = [identity]
+                return await pbi_post(path, body)
+            elif match and not username:
+                raise Exception(
+                    f"effectiveIdentity required for dataset {match.group(1)}. "
+                    "Configure o e-mail do usuário Power BI nas configurações do dataset."
+                )
+        raise
 
 
 async def execute_query(
