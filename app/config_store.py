@@ -15,7 +15,9 @@ def _load_from_file():
 
 
 def load_from_supabase():
-    """Called explicitly at startup (after env vars are loaded) to merge Supabase configs."""
+    """Load configs from Supabase. Only used when local file is absent (e.g. Vercel serverless)."""
+    if _CONFIG_FILE.exists():
+        return  # local file is authoritative in dev — do not overwrite
     try:
         from database import get_db
         db = get_db()
