@@ -94,6 +94,26 @@ Filter syntax:
 - WRONG: SUMMARIZECOLUMNS(col, KEEPFILTERS(...), "M", expr)
 - WRONG: SUMMARIZECOLUMNS(col, "M", expr, FILTER(tbl, ...))
 - WRONG: ADDCOLUMNS(..., "Col", Table[Column])  ← column reference outside row context
+- WRONG: CALCULATETABLE(..., CALCULATE([M]) > 0)  ← CALCULATE inside boolean/filter expression causes "CALCULATE used in True/False expression" error
+- WRONG: FILTER(Table, CALCULATE([M]) > value)  ← same error
+
+CALCULATE in filter position (CRITICAL):
+- NEVER use CALCULATE() as a filter argument or inside a boolean expression
+- NEVER write: CALCULATETABLE(expr, CALCULATE([M]) > x) or FILTER(tbl, CALCULATE([M]) > x)
+- To filter by a measure threshold, use VAR:
+  VAR threshold = CALCULATE([M], some_filter)
+  RETURN FILTER(VALUES(Table[Col]), [M] > threshold)
+
+Pattern 5 — Trend over time (improving/worsening, "estamos melhorando", "evolução"):
+  Return values per period and let the analysis interpret the trend:
+  EVALUATE
+  SUMMARIZECOLUMNS(
+      Table[PeriodColumn],
+      "Metrica", [Measure]
+  )
+  ORDER BY Table[PeriodColumn] ASC
+  NEVER add CALCULATE comparisons inside filter position for trend analysis.
+  The formatted answer will compare values and state whether performance improved or worsened.
 
 - Use TOPN ONLY when user asks for "top N", "maior", "menor", "ranking" WITHOUT a specific period
 - Use ORDER BY for multi-row results
