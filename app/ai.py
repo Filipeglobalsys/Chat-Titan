@@ -115,6 +115,57 @@ def _schema_to_text(schema: list) -> str:
     return "\n".join(lines)
 
 
+_SCHEMA_KEYWORDS = [
+    "relacionamento", "relacionamentos", "relação", "relações", "relationship", "relationships",
+    "quais tabelas", "quais são as tabelas", "lista de tabelas", "listar tabelas",
+    "quais colunas", "quais são as colunas", "lista de colunas",
+    "quais medidas", "quais são as medidas", "lista de medidas",
+    "estrutura do dataset", "estrutura das tabelas", "schema do dataset",
+    "o que tem no dataset", "o que existe no dataset", "mostre o schema",
+    "me mostra as tabelas", "me mostre as tabelas",
+]
+
+def is_schema_question(question: str) -> bool:
+    q = question.lower().strip()
+    return any(kw in q for kw in _SCHEMA_KEYWORDS)
+
+
+def answer_schema_question(question: str, schema: list, dataset_name: str) -> str:
+    q = question.lower()
+    wants_relationships = any(kw in q for kw in ["relacionamento", "relação", "relações", "relationship"])
+
+    visible = [t for t in schema if not t["name"].startswith("DateTableTemplate_") and not t["name"].startswith("LocalDateTable_")]
+
+    lines = [f"**Dataset: {dataset_name}**\n", f"**Tabelas ({len(visible)}):**\n"]
+    for table in visible:
+        cols = table.get("columns") or []
+        measures = table.get("measures") or []
+        col_names = ", ".join(c["name"] for c in cols[:12]) + (" ..." if len(cols) > 12 else "")
+        meas_names = ", ".join(m["name"] for m in measures[:8]) + (" ..." if len(measures) > 8 else "")
+        lines.append(f"**{table['name']}**")
+        if cols:
+            lines.append(f"  Colunas ({len(cols)}): {col_names}")
+        if measures:
+            lines.append(f"  Medidas ({len(measures)}): {meas_names}")
+        lines.append("")
+
+    if wants_relationships:
+        lines.append("**Relacionamentos inferidos** (colunas com nomes idênticos entre tabelas):\n")
+        col_to_tables: dict[str, list] = {}
+        for table in visible:
+            for col in (table.get("columns") or []):
+                cname = col["name"]
+                col_to_tables.setdefault(cname, []).append(table["name"])
+        shared = {k: v for k, v in col_to_tables.items() if len(v) > 1}
+        if shared:
+            for col_name, tables_with_col in shared.items():
+                lines.append(f"  • `{col_name}`: {' ↔ '.join(tables_with_col)}")
+        else:
+            lines.append("  Nenhuma coluna compartilhada encontrada entre as tabelas. Os relacionamentos definidos no Power BI Desktop não são exportados pela API de metadados.")
+
+    return "\n".join(lines)
+
+
 _FOLLOWUP_KEYWORDS = [
     "qual foi", "qual é", "me diz", "como se chama", "o nome", "qual o nome",
     "que mês", "que mes", "qual mês", "qual mes", "quando", "explica", "explique",

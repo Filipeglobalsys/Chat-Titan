@@ -17,7 +17,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel
 
 from database import get_db, sync_metadata, get_dataset_schema, get_dataset_sync_status, sync_rls_dataset, sync_gateway_dataset, restore_sync_flags_from_db, _sync_flags
-from ai import generate_dax, fix_dax, format_answer, is_followup_question, answer_from_context, generate_sql, fix_sql
+from ai import generate_dax, fix_dax, format_answer, is_followup_question, answer_from_context, generate_sql, fix_sql, is_schema_question, answer_schema_question
 from powerbi import execute_query, get_reports, generate_embed_token
 import gateway as _gw
 from gateway import set_gateway_config, get_gateway_config, execute_sql, detect_dialect, build_connection_string
@@ -413,6 +413,11 @@ async def _chat_handler(req: ChatRequest, user_email: str = ""):
 
     dataset_name = ds_res.data["name"]
     workspace_id = ds_res.data.get("workspace_id")
+
+    # Schema/structure questions: answer directly from loaded schema, no DAX needed
+    if is_schema_question(req.question):
+        answer = answer_schema_question(req.question, schema, dataset_name)
+        return {"question": req.question, "dax_query": None, "rows": [], "row_count": 0, "answer": answer}
 
     # If it's a follow-up clarification, answer from context without running DAX
     if is_followup_question(req.question, req.history):
