@@ -81,8 +81,10 @@ async def generate_embed_token(
     path = f"/groups/{workspace_id}/reports/{report_id}/GenerateToken"
     body: dict = {"accessLevel": "View"}
 
-    if username and dataset_id:
-        identity: dict = {"username": username, "datasets": [dataset_id]}
+    effective_user = (username or "copilot-embed") if (username or roles) and dataset_id else None
+
+    if effective_user:
+        identity: dict = {"username": effective_user, "datasets": [dataset_id]}
         if roles:
             identity["roles"] = roles
         body["identities"] = [identity]
@@ -95,16 +97,18 @@ async def generate_embed_token(
         # Extract the required dataset ID from the error and retry with it.
         if "effective identity" in err_str.lower():
             match = re.search(r'dataset\s+([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})', err_str, re.IGNORECASE)
-            if match and username:
+            if match and effective_user:
                 required_ds = match.group(1)
                 print(f"[EMBED] effectiveIdentity required for dataset {required_ds} — retrying")
-                identity = {"username": username, "datasets": [required_ds]}
-                body["identities"] = [identity]
+                retry_identity: dict = {"username": effective_user, "datasets": [required_ds]}
+                if roles:
+                    retry_identity["roles"] = roles
+                body["identities"] = [retry_identity]
                 return await pbi_post(path, body)
-            elif match and not username:
+            elif match and not effective_user:
                 raise Exception(
                     f"effectiveIdentity required for dataset {match.group(1)}. "
-                    "Configure o e-mail do usuário Power BI nas configurações do dataset."
+                    "Configure a Role nas configurações do dataset."
                 )
         raise
 

@@ -606,14 +606,14 @@ textarea:disabled{opacity:.5}
           </div>
           <div class="config-card-body">
             <div class="fg">
-              <label>Usuário (e-mail) <span class="req">*</span></label>
-              <input class="finput" type="email" id="cfg-rls-user" placeholder="usuario@empresa.com.br"/>
-              <div class="fhint">Usuário impersonado para consultas (effectiveIdentity)</div>
-            </div>
-            <div class="fg">
               <label>Papel / Role <span class="req">*</span></label>
               <input class="finput" type="text" id="cfg-rls-role" placeholder="Ex: Vendedor, Gerente, Admin"/>
               <div class="fhint">Nome exato da role definida no Power BI Desktop</div>
+            </div>
+            <div class="fg">
+              <label>Usuário (e-mail) <span style="font-size:11px;font-weight:400;color:var(--muted)">(opcional)</span></label>
+              <input class="finput" type="text" id="cfg-rls-user" placeholder="usuario@empresa.com.br"/>
+              <div class="fhint">Necessário apenas para datasets com effectiveIdentity por usuário</div>
             </div>
           </div>
         </div>
@@ -909,7 +909,7 @@ function renderDatasetTable(datasets) {
   }
   tbody.innerHTML = datasets.map(ds => {
     const cfg = ds._cfg || {};
-    const hasRlsCfg = !!cfg.rls_username;
+    const hasRlsCfg = !!(cfg.rls_role);
     const hasDbCfg = cfg.db_host && cfg.has_password;
 
     let typeChip = '';
@@ -1164,7 +1164,7 @@ function updateChatState() {
   }
 
   const cfg = ds._cfg || {};
-  const hasRlsCfg = !!cfg.rls_username;
+  const hasRlsCfg = !!(cfg.rls_role);
   const hasDbCfg = cfg.db_host && cfg.has_password;
   const needsRls = ds.is_rls && !hasRlsCfg;
   const needsDb = ds.is_gateway && !hasDbCfg && !ds.has_schema && !hasRlsCfg;
@@ -1198,7 +1198,7 @@ function updateAlertStrip() {
   if (!ds) { strip.style.display = 'none'; return; }
 
   const cfg = ds._cfg || {};
-  const hasRlsCfg = !!cfg.rls_username;
+  const hasRlsCfg = !!(cfg.rls_role);
   const hasDbCfg = cfg.db_host && cfg.has_password;
   const needsRls = ds.is_rls && !hasRlsCfg;
   const needsDb = ds.is_gateway && !hasDbCfg && !ds.has_schema && !hasRlsCfg;
@@ -1209,7 +1209,8 @@ function updateAlertStrip() {
     strip.style.display = '';
   } else if (hasRlsCfg || hasDbCfg) {
     strip.className = 'alert-strip ok';
-    strip.innerHTML = `Acesso configurado para <strong>${cfg.rls_username || cfg.db_host}</strong>. &nbsp;<a onclick="openConfigForCurrent()">Editar</a>`;
+    const accessLabel = cfg.rls_role ? `Role: ${cfg.rls_role}` : (cfg.rls_username || cfg.db_host);
+    strip.innerHTML = `Acesso configurado — <strong>${accessLabel}</strong>. &nbsp;<a onclick="openConfigForCurrent()">Editar</a>`;
     strip.style.display = '';
   } else {
     strip.style.display = 'none';
