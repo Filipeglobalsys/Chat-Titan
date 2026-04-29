@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from azure.identity import UsernamePasswordCredential
-from azure.storage.blob.aio import BlobServiceClient
-
 
 def _fmt_size(n: int | None) -> str:
     if n is None:
@@ -27,6 +24,15 @@ async def find_latest_parquet_blobs(
     prefix: str = "",
     top_n: int = 20,
 ) -> list[dict]:
+    try:
+        from azure.identity import UsernamePasswordCredential
+        from azure.storage.blob.aio import BlobServiceClient
+    except ImportError:
+        raise RuntimeError(
+            "Pacotes Azure não instalados no servidor. "
+            "Execute: pip install azure-storage-blob azure-identity"
+        )
+
     credential = UsernamePasswordCredential(
         client_id=client_id,
         username=username,
