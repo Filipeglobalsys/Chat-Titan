@@ -2487,7 +2487,7 @@ async function azFindParquet() {
   try {
     const res = await fetch('/api/azure/find-latest-parquet', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(window._authToken ? { 'Authorization': `Bearer ${window._authToken}` } : {}) },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_authToken}` },
       body: JSON.stringify({ tenant_id: tenant, client_id: client, username: user, password: pass, storage_account: storage, container_name: container, prefix }),
     });
 
