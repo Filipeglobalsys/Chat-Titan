@@ -967,6 +967,34 @@ async def data_maturity_analyze(req: DataMaturityRequest):
     )
 
 
+class AzureParquetRequest(BaseModel):
+    tenant_id: str
+    client_id: str
+    username: str
+    password: str
+    storage_account: str
+    container_name: str
+    prefix: str = ""
+
+
+@app.post("/api/azure/find-latest-parquet")
+async def azure_find_latest_parquet(req: AzureParquetRequest):
+    from azure_storage import find_latest_parquet_blobs
+    try:
+        blobs = await find_latest_parquet_blobs(
+            tenant_id=req.tenant_id,
+            client_id=req.client_id,
+            username=req.username,
+            password=req.password,
+            storage_account=req.storage_account,
+            container_name=req.container_name,
+            prefix=req.prefix,
+        )
+        return {"blobs": blobs, "count": len(blobs)}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("PORT", 8000)), reload=True)

@@ -738,6 +738,7 @@ textarea:disabled{opacity:.5}
     <div style="background:var(--surface);border-bottom:1px solid var(--border);display:flex;padding:0 22px;flex-shrink:0">
       <button class="de-mode-tab active" onclick="deSetMode('analysis')" data-mode="analysis" id="de-tab-analysis">Análise de Ambiente</button>
       <button class="de-mode-tab" onclick="deSetMode('ingestion')" data-mode="ingestion" id="de-tab-ingestion">Ingestão</button>
+      <button class="de-mode-tab" onclick="deSetMode('search')" data-mode="search" id="de-tab-search">Buscar Dados</button>
     </div>
     <!-- Panels -->
     <div style="flex:1;overflow:hidden;display:flex;flex-direction:column">
@@ -909,6 +910,38 @@ textarea:disabled{opacity:.5}
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
             <span style="font-size:13px">Preencha o formulário e clique em Executar Ingestão</span>
           </div>
+        </div>
+      </div>
+
+      <!-- ─ Search Panel ─ -->
+      <div id="de-panel-search" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:16px 22px;flex-shrink:0">
+          <div class="de-section-title" style="margin-bottom:12px">Autenticação Microsoft Azure</div>
+          <div class="de-grid-2">
+            <div class="fg"><label>Tenant ID</label><input class="finput" id="az-tenant" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"/></div>
+            <div class="fg"><label>Client ID (App Registration)</label><input class="finput" id="az-client" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"/></div>
+          </div>
+          <div class="de-grid-2">
+            <div class="fg"><label>E-mail Microsoft</label><input class="finput" id="az-user" type="email" placeholder="usuario@empresa.com"/></div>
+            <div class="fg"><label>Senha Microsoft</label><input class="finput" id="az-pass" type="password" placeholder="••••••••••••"/></div>
+          </div>
+          <div class="de-section-title" style="margin-bottom:12px;margin-top:4px">Localização do Container</div>
+          <div class="de-grid-3">
+            <div class="fg"><label>Storage Account</label><input class="finput" id="az-storage" placeholder="meustorageaccount"/></div>
+            <div class="fg"><label>Container</label><input class="finput" id="az-container" placeholder="meu-container"/></div>
+            <div class="fg"><label>Prefixo / Pasta (opcional)</label><input class="finput" id="az-prefix" placeholder="dados/vendas/"/></div>
+          </div>
+          <button class="btn btn-primary" id="az-run-btn" onclick="azFindParquet()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Buscar Parquet mais recente
+          </button>
+        </div>
+        <div id="az-output" style="flex:1;overflow-y:auto;padding:20px 22px;background:var(--bg)">
+          <div id="az-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--muted-2)">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span style="font-size:13px">Preencha as credenciais e clique em Buscar</span>
+          </div>
+          <div id="az-results" style="display:none"></div>
         </div>
       </div>
 
@@ -1929,7 +1962,7 @@ let _deAnalysisPlatform = '';
 function deSetMode(mode) {
   _deMode = mode;
   document.querySelectorAll('.de-mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
-  ['analysis','ingestion'].forEach(m => {
+  ['analysis','ingestion','search'].forEach(m => {
     const p = document.getElementById(`de-panel-${m}`);
     if (p) p.style.display = m === mode ? 'flex' : 'none';
   });
@@ -2423,6 +2456,98 @@ function _deRenderSummaryCard(outputEl, d) {
     ${d.dbfs_path ? `<div style="margin-top:12px;background:#1e293b;color:#e2e8f0;border-radius:6px;padding:10px 12px;font-family:monospace;font-size:12px;line-height:1.7"><div style="color:#94a3b8;font-size:11px;margin-bottom:4px"># Use no seu notebook Databricks:</div>${escHtml('df = spark.read.csv("' + d.dbfs_path + '", header=True, inferSchema=True)\ndisplay(df)')}</div>` : ''}`;
 
   outputEl.parentElement && (outputEl.parentElement.scrollTop = outputEl.parentElement.scrollHeight);
+}
+
+async function azFindParquet() {
+  const btn = document.getElementById('az-run-btn');
+  const emptyEl = document.getElementById('az-empty');
+  const resultsEl = document.getElementById('az-results');
+
+  const tenant = document.getElementById('az-tenant').value.trim();
+  const client = document.getElementById('az-client').value.trim();
+  const user   = document.getElementById('az-user').value.trim();
+  const pass   = document.getElementById('az-pass').value;
+  const storage = document.getElementById('az-storage').value.trim();
+  const container = document.getElementById('az-container').value.trim();
+  const prefix = document.getElementById('az-prefix').value.trim();
+
+  if (!tenant || !client || !user || !pass || !storage || !container) {
+    resultsEl.innerHTML = `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 16px;color:#dc2626;font-size:13px">Preencha todos os campos obrigatórios.</div>`;
+    emptyEl.style.display = 'none';
+    resultsEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="animate-spin" style="animation:spin .8s linear infinite"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg> Buscando…`;
+  emptyEl.style.display = 'none';
+  resultsEl.style.display = 'block';
+  resultsEl.innerHTML = `<div style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;padding:20px 0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin .8s linear infinite"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>Conectando ao Azure e listando arquivos…</div>`;
+
+  try {
+    const res = await fetch('/api/azure/find-latest-parquet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(window._authToken ? { 'Authorization': `Bearer ${window._authToken}` } : {}) },
+      body: JSON.stringify({ tenant_id: tenant, client_id: client, username: user, password: pass, storage_account: storage, container_name: container, prefix }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      resultsEl.innerHTML = `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 16px;color:#dc2626;font-size:13px"><strong>Erro:</strong> ${escHtml(data.detail || 'Falha na conexão com Azure.')}</div>`;
+      return;
+    }
+
+    const blobs = data.blobs || [];
+    if (!blobs.length) {
+      resultsEl.innerHTML = `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;color:#92400e;font-size:13px">Nenhum arquivo <strong>.parquet</strong> encontrado no container <strong>${escHtml(container)}</strong>${prefix ? ' com o prefixo <strong>' + escHtml(prefix) + '</strong>' : ''}.</div>`;
+      return;
+    }
+
+    const newest = blobs[0];
+    const fmtDate = (iso) => iso ? new Date(iso).toLocaleString('pt-BR') : '—';
+
+    resultsEl.innerHTML = `
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Arquivo mais recente</div>
+        <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span style="font-size:13.5px;font-weight:600;color:#15803d;word-break:break-all">${escHtml(newest.name)}</span>
+          </div>
+          <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:12px;color:#166534">
+            <span><strong>Última modificação:</strong> ${escHtml(fmtDate(newest.last_modified))}</span>
+            <span><strong>Tamanho:</strong> ${escHtml(newest.size_readable)}</span>
+          </div>
+        </div>
+      </div>
+      ${blobs.length > 1 ? `
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Outros arquivos encontrados (${blobs.length - 1})</div>
+        <div class="card" style="overflow:hidden">
+          <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+            <thead><tr style="background:#f8fafc;border-bottom:2px solid var(--border)">
+              <th style="padding:8px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Arquivo</th>
+              <th style="padding:8px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Última modificação</th>
+              <th style="padding:8px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Tamanho</th>
+            </tr></thead>
+            <tbody>
+              ${blobs.slice(1).map((b, i) => `
+                <tr style="border-bottom:1px solid var(--border);${i % 2 === 1 ? 'background:#f8fafc' : ''}">
+                  <td style="padding:8px 14px;word-break:break-all;color:var(--text)">${escHtml(b.name)}</td>
+                  <td style="padding:8px 14px;white-space:nowrap;color:var(--text-2)">${escHtml(fmtDate(b.last_modified))}</td>
+                  <td style="padding:8px 14px;white-space:nowrap;color:var(--text-2)">${escHtml(b.size_readable)}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>` : ''}`;
+  } catch (e) {
+    resultsEl.innerHTML = `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 16px;color:#dc2626;font-size:13px"><strong>Erro de conexão:</strong> ${escHtml(String(e))}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Buscar Parquet mais recente`;
+  }
 }
 
 function deRunIngestion() {
