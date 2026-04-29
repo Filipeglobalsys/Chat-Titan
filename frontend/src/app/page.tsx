@@ -1,12 +1,14 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { BarChart3, Loader2 } from 'lucide-react';
+import { BarChart3, Database, Loader2, ShieldCheck } from 'lucide-react';
 import { api } from '@/lib/api';
-import { Workspace, Dataset, ChatMessage } from '@/types';
+import { Workspace, Dataset, ChatMessage, AppTab } from '@/types';
 import { WorkspaceSelector, DatasetSelector } from '@/components/Selectors';
 import { MessageBubble } from '@/components/MessageBubble';
 import { ChatInput } from '@/components/ChatInput';
 import { SyncButton } from '@/components/SyncButton';
+import { DataEngineering } from '@/components/DataEngineering';
+import { DataMaturity } from '@/components/DataMaturity';
 
 const WELCOME: ChatMessage = {
   id: 'welcome',
@@ -17,6 +19,7 @@ const WELCOME: ChatMessage = {
 };
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState<AppTab>('powerbi');
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedWorkspace, setSelectedWorkspace] = useState('');
@@ -108,58 +111,118 @@ export default function Home() {
           </div>
           <div>
             <h1 className="text-base font-semibold text-white leading-tight">Power BI Copilot</h1>
-            {selectedDatasetName && (
+            {activeTab === 'powerbi' && selectedDatasetName && (
               <p className="text-xs text-slate-400">{selectedDatasetName}</p>
+            )}
+            {activeTab === 'data-engineering' && (
+              <p className="text-xs text-slate-400">Databricks</p>
+            )}
+            {activeTab === 'data-maturity' && (
+              <p className="text-xs text-slate-400">DAMA-DMBOK</p>
             )}
           </div>
         </div>
-        <SyncButton onSync={loadWorkspaces} />
+        <div className="flex items-center gap-3">
+          {/* Navigation tabs */}
+          <nav className="flex items-center bg-powerbi-card border border-powerbi-border rounded-lg p-0.5 gap-0.5">
+            <button
+              onClick={() => setActiveTab('powerbi')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                activeTab === 'powerbi'
+                  ? 'bg-powerbi-yellow text-black'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <BarChart3 size={13} />
+              Power BI
+            </button>
+            <button
+              onClick={() => setActiveTab('data-engineering')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                activeTab === 'data-engineering'
+                  ? 'bg-powerbi-yellow text-black'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Database size={13} />
+              Engenharia de Dados
+            </button>
+            <button
+              onClick={() => setActiveTab('data-maturity')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                activeTab === 'data-maturity'
+                  ? 'bg-powerbi-yellow text-black'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <ShieldCheck size={13} />
+              Maturidade de Dados
+            </button>
+          </nav>
+          {activeTab === 'powerbi' && <SyncButton onSync={loadWorkspaces} />}
+        </div>
       </header>
 
-      {/* Selectors */}
-      <div className="px-6 py-3 border-b border-powerbi-border bg-powerbi-card/30 grid grid-cols-2 gap-3">
-        <WorkspaceSelector
-          workspaces={workspaces}
-          selected={selectedWorkspace}
-          onChange={handleWorkspaceChange}
-          loading={loadingWorkspaces}
-        />
-        <DatasetSelector
-          datasets={datasets}
-          selected={selectedDataset}
-          onChange={setSelectedDataset}
-          loading={loadingDatasets}
-        />
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 scrollbar-thin">
-        {messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} />
-        ))}
-        {loading && (
-          <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
-              <Loader2 size={16} className="text-blue-400 animate-spin" />
-            </div>
-            <div className="bg-powerbi-card border border-powerbi-border rounded-2xl rounded-tl-sm px-4 py-3">
-              <div className="flex gap-1">
-                <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-              </div>
-            </div>
+      {activeTab === 'powerbi' && (
+        <>
+          {/* Selectors */}
+          <div className="px-6 py-3 border-b border-powerbi-border bg-powerbi-card/30 grid grid-cols-2 gap-3">
+            <WorkspaceSelector
+              workspaces={workspaces}
+              selected={selectedWorkspace}
+              onChange={handleWorkspaceChange}
+              loading={loadingWorkspaces}
+            />
+            <DatasetSelector
+              datasets={datasets}
+              selected={selectedDataset}
+              onChange={setSelectedDataset}
+              loading={loadingDatasets}
+            />
           </div>
-        )}
-        <div ref={bottomRef} />
-      </div>
 
-      {/* Input */}
-      <ChatInput
-        onSend={handleSend}
-        loading={loading}
-        disabled={!selectedDataset}
-      />
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 scrollbar-thin">
+            {messages.map((msg) => (
+              <MessageBubble key={msg.id} message={msg} />
+            ))}
+            {loading && (
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+                  <Loader2 size={16} className="text-blue-400 animate-spin" />
+                </div>
+                <div className="bg-powerbi-card border border-powerbi-border rounded-2xl rounded-tl-sm px-4 py-3">
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+
+          {/* Input */}
+          <ChatInput
+            onSend={handleSend}
+            loading={loading}
+            disabled={!selectedDataset}
+          />
+        </>
+      )}
+
+      {activeTab === 'data-engineering' && (
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <DataEngineering />
+        </div>
+      )}
+
+      {activeTab === 'data-maturity' && (
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <DataMaturity />
+        </div>
+      )}
     </div>
   );
 }

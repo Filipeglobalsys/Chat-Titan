@@ -35,3 +35,6 @@ Thumbs.db
 
 # Vercel
 .vercel/
+
+# Agent runtime files
+.agents/

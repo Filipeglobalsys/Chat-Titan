@@ -400,3 +400,286 @@ Dados retornados ({len(rows)} registros, amostra de até 20):
         messages=[{"role": "user", "content": user}],
     )
     return resp.content[0].text.strip()
+
+
+# ── Databricks Environment Analysis ──────────────────────────────────────────
+
+_DATA_ENGINEER_SYSTEM = """Você é um Senior Data Engineer — um par técnico, não um assistente. Você tem opiniões fortes sobre arquitetura de dados e aponta problemas diretamente. Você já se queimou com schemas ruins, pipelines instáveis e "gambiarras temporárias" que ficaram 3 anos em produção.
+
+Personalidade: obcecado com confiabilidade, disciplinado com schemas, focado em throughput, direto quando necessário.
+Estilo: técnico, sem rodeios — pule o preâmbulo, vá direto para os tradeoffs.
+Idioma: sempre em Português (Brasil), exceto código e termos técnicos.
+
+Ao analisar um ambiente Databricks:
+- Comece pelo que está ERRADO e vai machucar em produção
+- Quantifique o impacto quando possível
+- Dê recomendações acionáveis com código concreto, não conselhos vagos
+- Reconheça o que está bom (brevemente)
+
+Estrutura obrigatória do relatório:
+1. 🔴 Riscos Críticos (o que vai quebrar)
+2. 🟡 Pontos de Atenção (o que vai degradar)
+3. ✅ O que está sólido
+4. 🏗️ Arquitetura de Dados (camadas, formatos, organização)
+5. ⚙️ Clusters & Custo (configuração, eficiência)
+6. 🔄 Jobs & Pipelines (confiabilidade, taxa de falha)
+7. 📋 5 Ações Prioritárias (ordenadas por impacto)
+
+Non-negotiables a verificar:
+- Idempotência dos pipelines
+- Contratos de schema com drift alerting
+- Observabilidade: latência, freshness, null rates, row counts
+- Custo de cluster (fixo vs efêmero)
+- Organização Bronze/Silver/Gold
+- Taxa de falha dos jobs e alertas"""
+
+
+def _build_env_summary(env_data: dict) -> str:
+    clusters = env_data.get("clusters", [])
+    jobs = env_data.get("jobs", [])
+    catalogs = env_data.get("catalogs", [])
+    tables = env_data.get("tables_sample", [])
+    schemas_by_catalog = env_data.get("schemas_by_catalog", {})
+
+    lines = [f"## Workspace: {env_data.get('workspace_host')}", ""]
+
+    lines.append(f"### Clusters ({len(clusters)} total)")
+    for c in clusters:
+        autoscale_str = "autoscale=sim" if c.get("autoscale") else f"workers={c.get('num_workers', '?')}"
+        lines.append(
+            f"- {c['name']} | state={c['state']} | runtime={c['runtime']} "
+            f"| node={c['node_type']} | {autoscale_str} | source={c.get('cluster_source', '?')}"
+        )
+
+    lines += ["", f"### Jobs/Pipelines ({len(jobs)} total)"]
+    for j in jobs:
+        runs = j.get("recent_runs", [])
+        if runs:
+            failed = sum(1 for r in runs if r.get("state") in ("FAILED", "TIMEDOUT", "MAXIMUM_CONCURRENT_RUNS_REACHED"))
+            success_rate = f"{round((1 - failed / len(runs)) * 100)}% ({len(runs)} runs)"
+        else:
+            success_rate = "sem histórico"
+        sched = j.get("schedule") or "manual/trigger"
+        paused = " [PAUSADO]" if j.get("pause_status") == "PAUSED" else ""
+        lines.append(f"- {j['name']}{paused} | schedule={sched} | success_rate={success_rate}")
+
+    lines += ["", f"### Unity Catalog ({len(catalogs)} catálogos)"]
+    if catalogs:
+        for cat_name, schemas in schemas_by_catalog.items():
+            schema_names = ", ".join(s["name"] for s in schemas[:10])
+            lines.append(f"- Catálogo: {cat_name} | {len(schemas)} schemas: {schema_names}")
+    else:
+        lines.append("- Unity Catalog não disponível (workspace legado / Hive Metastore)")
+
+    lines += ["", f"### Tabelas amostradas ({len(tables)} tabelas)"]
+    for t in tables[:40]:
+        fmt = t.get("data_source_format") or "?"
+        ttype = t.get("table_type") or "?"
+        lines.append(f"- {t['full_name']} | format={fmt} | type={ttype} | cols={t['column_count']}")
+
+    return "\n".join(lines)
+
+
+async def analyze_databricks_environment(env_data: dict):
+    """Async generator: stream data-engineer analysis of a Databricks workspace."""
+    summary = _build_env_summary(env_data)
+    user_prompt = (
+        f"Analise este ambiente Databricks e produza um relatório técnico completo:\n\n"
+        f"{summary}\n\n"
+        "Seja direto. Comece pelo que está errado e vai machucar em produção. "
+        "Depois o que está bom. Termine com as 5 ações prioritárias ordenadas por impacto."
+    )
+
+    async with _get_client().messages.stream(
+        model=_MODEL,
+        max_tokens=4096,
+        system=_DATA_ENGINEER_SYSTEM,
+        messages=[{"role": "user", "content": user_prompt}],
+    ) as stream:
+        async for text in stream.text_stream:
+            yield text
+
+
+# ── Microsoft Fabric Environment Analysis ─────────────────────────────────────
+
+_FABRIC_ENGINEER_SYSTEM = """Você é um Senior Data Engineer especializado em Microsoft Fabric e arquitetura de dados na plataforma Azure/Microsoft. Você é um par técnico, não um assistente. Tem opiniões fortes e aponta problemas diretamente.
+
+Especialidades no Fabric:
+- Delta Lake como formato nativo (vs Iceberg em outros)
+- Lakehouse vs Warehouse: quando usar cada um
+- OneLake como camada de armazenamento unificado e Shortcuts
+- Direct Lake mode para Semantic Models (vs Import vs DirectQuery)
+- Medallion Architecture no contexto do Fabric
+- Data Pipeline vs Dataflow Gen2 vs Notebook: casos de uso corretos
+- Capacidades (SKU F/P/E) e otimização de CU
+
+Personalidade: direto, técnico, sem rodeios.
+Idioma: sempre em Português (Brasil), exceto código e termos técnicos.
+
+Estrutura obrigatória do relatório:
+1. 🔴 Riscos Críticos (o que vai quebrar ou gerar custo inesperado)
+2. 🟡 Pontos de Atenção (antipadrões, decisões arquiteturais questionáveis)
+3. ✅ O que está sólido
+4. 🏗️ Arquitetura de Dados (organização de workspaces, Lakehouses, Warehouses, camadas)
+5. 🔄 Pipelines & Notebooks (cobertura de automação, gaps)
+6. 💰 Capacidade & Custo (uso de CU, itens que consomem capacidade desnecessariamente)
+7. 📋 5 Ações Prioritárias (ordenadas por impacto)
+
+Non-negotiables a verificar no Fabric:
+- Separação de workspaces por ambiente (dev/homolog/prod)
+- Lakehouses com estrutura Medallion (Bronze/Silver/Gold) vs tudo em um lakehouse só
+- Tabelas Delta com Z-Order e vacuum configurados
+- Pipelines cobrindo todos os Lakehouses (sem lakehouse órfão sem pipeline)
+- Notebooks sendo usados como pipelines ad-hoc (antipadrão)
+- Direct Lake vs Import: semantic models sem Direct Lake onde deveria ter
+- Shortcut vs cópia física: dados duplicados no OneLake"""
+
+
+def _build_fabric_summary(env_data: dict) -> str:
+    workspaces = env_data.get("workspaces", [])
+    total_ws = env_data.get("total_workspaces", len(workspaces))
+
+    lines = [
+        f"## Tenant Fabric",
+        f"Total de workspaces no tenant: {total_ws} ({len(workspaces)} analisados)",
+        "",
+    ]
+
+    for ws in workspaces:
+        item_counts = ws.get("item_counts", {})
+        lakehouses = ws.get("lakehouses", [])
+        warehouses = ws.get("warehouses", [])
+        pipelines = ws.get("pipelines", [])
+        notebooks = ws.get("notebooks", [])
+
+        counts_str = ", ".join(f"{k}={v}" for k, v in sorted(item_counts.items()))
+        lines.append(f"### Workspace: {ws['name']} (type={ws.get('type', '?')})")
+        lines.append(f"  Itens: {counts_str or 'vazio'}")
+
+        if lakehouses:
+            lines.append(f"  Lakehouses ({len(lakehouses)}):")
+            for lh in lakehouses:
+                tc = lh.get("table_count")
+                tc_str = str(tc) if tc is not None else "não consultado"
+                lines.append(f"    - {lh['name']} | tabelas={tc_str} | sql_endpoint={'sim' if lh.get('sql_endpoint') else 'não'}")
+                for t in lh.get("tables", [])[:15]:
+                    lines.append(f"      · {t['name']} | format={t.get('format', '?')} | type={t.get('type', '?')}")
+
+        if warehouses:
+            lines.append(f"  Warehouses ({len(warehouses)}): {', '.join(w['name'] for w in warehouses)}")
+
+        if pipelines:
+            lines.append(f"  Pipelines ({len(pipelines)}): {', '.join(p['name'] for p in pipelines[:10])}")
+        else:
+            lines.append(f"  Pipelines: nenhum")
+
+        if notebooks:
+            lines.append(f"  Notebooks ({len(notebooks)}): {', '.join(n['name'] for n in notebooks[:8])}")
+
+        lines.append("")
+
+    return "\n".join(lines)
+
+
+async def analyze_fabric_environment(env_data: dict):
+    """Async generator: stream data-engineer analysis of a Microsoft Fabric tenant."""
+    summary = _build_fabric_summary(env_data)
+    user_prompt = (
+        f"Analise este ambiente Microsoft Fabric e produza um relatório técnico completo:\n\n"
+        f"{summary}\n\n"
+        "Seja direto. Comece pelos riscos críticos e antipadrões que vão machucar em produção ou gerar custo inesperado. "
+        "Depois o que está bom. Termine com as 5 ações prioritárias ordenadas por impacto."
+    )
+
+    async with _get_client().messages.stream(
+        model=_MODEL,
+        max_tokens=4096,
+        system=_FABRIC_ENGINEER_SYSTEM,
+        messages=[{"role": "user", "content": user_prompt}],
+    ) as stream:
+        async for text in stream.text_stream:
+            yield text
+
+
+# ── Data Maturity Assessment (DAMA-DMBOK) ─────────────────────────────────────
+
+_DMBOK_SYSTEM = """Você é um especialista sênior em gestão de dados, com profundo conhecimento no framework DAMA-DMBOK (Data Management Body of Knowledge).
+
+Sua função é avaliar o nível de maturidade de dados de uma empresa com base nas disciplinas do DMBOK.
+
+Considere os seguintes domínios:
+1. Governança de Dados
+2. Arquitetura de Dados
+3. Modelagem e Design de Dados
+4. Armazenamento e Operações de Dados
+5. Segurança de Dados
+6. Integração e Interoperabilidade de Dados
+7. Documentação e Metadados
+8. Qualidade de Dados
+9. Data Warehousing e BI
+
+Escala de maturidade:
+1 = Inicial / Ad hoc
+2 = Repetível
+3 = Definido
+4 = Gerenciado
+5 = Otimizado
+
+Estágios de maturidade organizacional:
+- Operacional: baixo controle de dados, processos reativos, sem governança formal
+- Estruturando: organização iniciando, primeiros processos definidos, governança incipiente
+- Orientado a dados: uso consistente de dados para decisão, processos estruturados, governança ativa
+- Data-driven: dados como ativo estratégico, cultura orientada a dados, governança madura
+
+Com base nos dados fornecidos, gere:
+0. Classificação do estágio organizacional — coloque em destaque logo no início:
+   - Indique claramente em qual estágio a empresa se encontra (Operacional / Estruturando / Orientado a dados / Data-driven)
+   - Explique de forma objetiva os principais motivos que justificam essa classificação
+1. Score geral de maturidade (média ponderada) e classificação
+2. Análise detalhada por domínio do DMBOK
+3. Diagnóstico executivo (visão estratégica)
+4. Principais riscos associados ao nível atual
+5. Principais gaps em relação às boas práticas do DMBOK
+6. Plano de ação estruturado:
+   - Curto prazo (30 dias)
+   - Médio prazo (90 dias)
+   - Longo prazo (6 a 12 meses)
+7. Recomendações práticas (processos, governança, tecnologia)
+8. Nível de aderência ao DMBOK (% estimado)
+9. Benchmark de mercado (baixo, médio, alto)
+10. Nível de urgência (Baixo, Médio, Alto, Crítico)
+
+Regras:
+- Comece SEMPRE pela classificação do estágio organizacional antes de qualquer outra seção
+- Use linguagem consultiva e executiva
+- Baseie-se nas melhores práticas do DMBOK
+- Evite respostas genéricas
+- Traga recomendações práticas e aplicáveis
+- Pense como um consultor contratado para evoluir a empresa
+- Responda sempre em Português (Brasil)"""
+
+
+async def analyze_data_maturity(domains: dict):
+    """Async generator: stream DAMA-DMBOK maturity assessment."""
+    user_prompt = f"""Avalie a maturidade de dados desta empresa com base nas informações abaixo sobre cada domínio DMBOK:
+
+Governança de Dados: {domains.get('governanca', 'Não informado')}
+Arquitetura de Dados: {domains.get('arquitetura', 'Não informado')}
+Modelagem e Design de Dados: {domains.get('modelagem', 'Não informado')}
+Armazenamento e Operações de Dados: {domains.get('armazenamento', 'Não informado')}
+Segurança de Dados: {domains.get('seguranca', 'Não informado')}
+Integração e Interoperabilidade de Dados: {domains.get('integracao', 'Não informado')}
+Documentação e Metadados: {domains.get('metadados', 'Não informado')}
+Qualidade de Dados: {domains.get('qualidade', 'Não informado')}
+Data Warehousing e BI: {domains.get('bi', 'Não informado')}
+
+Produza um relatório completo de maturidade seguindo a estrutura definida. Seja específico, consultivo e orientado a ação."""
+
+    async with _get_client().messages.stream(
+        model=_MODEL,
+        max_tokens=6000,
+        system=_DMBOK_SYSTEM,
+        messages=[{"role": "user", "content": user_prompt}],
+    ) as stream:
+        async for text in stream.text_stream:
+            yield text

@@ -20,3 +20,18 @@ export interface ChatMessage {
   rowCount?: number;
   timestamp: Date;
 }
+
+export type AppTab = 'powerbi' | 'data-engineering' | 'data-maturity';
+
+export interface DatabricksProgressStep {
+  key: string;
+  message: string;
+  status: 'running' | 'done' | 'error';
+}
+
+export interface DatabricksSseEvent {
+  type: 'progress' | 'analysis_start' | 'analysis_chunk' | 'done' | 'error';
+  step?: string;
+  message?: string;
+  text?: string;
+}

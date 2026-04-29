@@ -198,6 +198,48 @@ textarea:disabled{opacity:.5}
 .welcome ul{margin-top:6px;padding-left:13px}
 .welcome li{font-size:11.5px;color:var(--muted);line-height:1.75}
 
+/* ── Data Engineering View ── */
+.de-mode-tab{padding:13px 18px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all .15s;font-family:inherit;white-space:nowrap}
+.de-mode-tab:hover{color:var(--text)}
+.de-mode-tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+.de-plat-tab{padding:6px 14px;font-size:12.5px;font-weight:500;cursor:pointer;border:none;border-radius:6px;background:transparent;color:var(--muted);transition:all .15s;font-family:inherit}
+.de-plat-tab.active{background:var(--surface);color:var(--blue);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.de-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.de-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.de-grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.de-section-title{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;margin-top:2px}
+.de-sql textarea{width:100%;height:100px;font-family:'Cascadia Code','Consolas',monospace;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;resize:vertical;background:#f8fafc;color:var(--text);line-height:1.5;outline:none;transition:border-color .15s}
+.de-sql textarea:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.de-sql textarea::placeholder{color:var(--muted-2);font-family:inherit}
+.de-step{display:flex;align-items:center;gap:8px;font-size:12.5px;margin-bottom:5px}
+.de-step-ok{color:var(--green)}.de-step-err{color:var(--red)}.de-step-run{color:var(--blue)}
+.de-terminal{background:#1e293b;border-radius:var(--radius);padding:16px;font-family:'Cascadia Code','Consolas',monospace;font-size:12px;color:#e2e8f0;line-height:1.7;white-space:pre-wrap;max-height:calc(100vh - 340px);overflow-y:auto;border:1px solid #334155;margin-top:8px}
+.de-terminal::-webkit-scrollbar{width:4px}.de-terminal::-webkit-scrollbar-thumb{background:#334155;border-radius:2px}
+.de-cursor{display:inline-block;width:8px;height:14px;background:#93c5fd;animation:de-blink 1s step-end infinite;vertical-align:text-bottom;margin-left:1px}
+@keyframes de-blink{0%,100%{opacity:1}50%{opacity:0}}
+.de-load-row{display:flex;gap:8px;align-items:flex-end}
+.de-load-row .fg{flex:1}
+.de-report{background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:32px 36px;margin-top:8px;overflow-y:auto;max-height:calc(100vh - 280px);font-size:13.5px;line-height:1.75;color:#1e293b}
+.de-report h1{font-size:19px;font-weight:700;color:#0f172a;border-bottom:2px solid #e2e8f0;padding-bottom:10px;margin:0 0 20px}
+.de-report h2{font-size:15px;font-weight:700;color:#1e3a5f;margin:28px 0 10px;display:flex;align-items:center;gap:6px}
+.de-report h3{font-size:13.5px;font-weight:600;color:#334155;margin:18px 0 8px}
+.de-report p{margin:0 0 12px;color:#374151}
+.de-report ul{padding-left:22px;margin:0 0 14px}
+.de-report li{margin:5px 0;color:#374151}
+.de-report strong{color:#0f172a}
+.de-report code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12px;font-family:'Cascadia Code','Consolas',monospace;color:#0f172a}
+.de-report pre{background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:14px 16px;overflow-x:auto;margin:10px 0 16px}
+.de-report pre code{background:none;padding:0;font-size:12px}
+.de-report table{border-collapse:collapse;width:100%;margin:12px 0 18px;font-size:12.5px}
+.de-report th{background:#1e3a5f;color:#fff;padding:8px 12px;text-align:left;font-weight:600}
+.de-report td{padding:7px 12px;border-bottom:1px solid #e2e8f0}
+.de-report tr:nth-child(even) td{background:#f8fafc}
+.de-report::-webkit-scrollbar{width:5px}.de-report::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+.de-export-bar{display:flex;align-items:center;gap:10px;padding:10px 0 2px;flex-shrink:0}
+.de-dropzone{border:2px dashed var(--border);border-radius:var(--radius);padding:22px 16px;text-align:center;cursor:pointer;transition:border-color .18s,background .18s;margin-bottom:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--bg)}
+.de-dropzone:hover,.de-dropzone.drag-over{border-color:var(--blue);background:#eff6ff}
+.de-dropzone.has-file{border-color:var(--green);background:#f0fdf4}
+.de-dropzone.has-file svg{color:var(--green);opacity:1}
 /* ── Config View ── */
 .config-view{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
 .config-topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 22px;gap:12px;flex-shrink:0;box-shadow:var(--shadow)}
@@ -437,6 +479,20 @@ textarea:disabled{opacity:.5}
       Forçar Resync completo
     </button>
     <div class="nav-sync-msg" id="sync-msg"></div>
+
+    <div class="nav-divider"></div>
+    <div class="nav-section">Engenharia de Dados</div>
+    <div class="nav-item" onclick="navTo('data-eng')" id="nav-data-eng">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+      Engenharia de Dados
+    </div>
+
+    <div class="nav-divider"></div>
+    <div class="nav-section">Dados</div>
+    <div class="nav-item" onclick="navTo('data-maturity')" id="nav-data-maturity">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Maturidade de Dados
+    </div>
   </div>
 </nav>
 
@@ -672,6 +728,260 @@ textarea:disabled{opacity:.5}
     </div>
   </div>
 
+  <!-- ══ VIEW: Data Engineering ══ -->
+  <div class="view hidden" id="view-data-eng" style="flex-direction:column">
+    <!-- Topbar -->
+    <div class="topbar" style="flex-shrink:0">
+      <div class="topbar-title" style="flex:1">Engenharia de Dados</div>
+    </div>
+    <!-- Mode tabs -->
+    <div style="background:var(--surface);border-bottom:1px solid var(--border);display:flex;padding:0 22px;flex-shrink:0">
+      <button class="de-mode-tab active" onclick="deSetMode('analysis')" data-mode="analysis" id="de-tab-analysis">Análise de Ambiente</button>
+      <button class="de-mode-tab" onclick="deSetMode('ingestion')" data-mode="ingestion" id="de-tab-ingestion">Ingestão</button>
+    </div>
+    <!-- Panels -->
+    <div style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+
+      <!-- ─ Analysis Panel ─ -->
+      <div id="de-panel-analysis" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+        <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:16px 22px;flex-shrink:0">
+          <div style="display:flex;gap:4px;margin-bottom:14px;background:#f1f5f9;border-radius:8px;padding:3px;width:fit-content">
+            <button class="de-plat-tab active" onclick="deSetPlatform('databricks')" data-plat="databricks" id="de-plat-databricks">Databricks</button>
+            <button class="de-plat-tab" onclick="deSetPlatform('fabric')" data-plat="fabric" id="de-plat-fabric">Microsoft Fabric</button>
+          </div>
+          <div id="de-form-databricks">
+            <div class="de-grid-2">
+              <div class="fg"><label>Workspace URL</label><input class="finput" id="de-db-host" placeholder="https://adb-xxx.azuredatabricks.net"/></div>
+              <div class="fg"><label>Personal Access Token</label><input class="finput" type="password" id="de-db-token" placeholder="dapi••••••••••••"/></div>
+            </div>
+            <button class="btn btn-primary" onclick="deRunAnalysis()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Analisar Ambiente
+            </button>
+          </div>
+          <div id="de-form-fabric" style="display:none">
+            <div class="de-grid-3">
+              <div class="fg"><label>Tenant ID</label><input class="finput" id="de-fab-tenant" placeholder="xxxxxxxx-xxxx-xxxx-xxxx"/></div>
+              <div class="fg"><label>Client ID (App Registration)</label><input class="finput" id="de-fab-client" placeholder="xxxxxxxx-xxxx-xxxx-xxxx"/></div>
+              <div class="fg"><label>Client Secret</label><input class="finput" type="password" id="de-fab-secret" placeholder="••••••••••••"/></div>
+            </div>
+            <button class="btn btn-primary" onclick="deRunAnalysis()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Analisar Ambiente
+            </button>
+          </div>
+        </div>
+        <div id="de-analysis-output" style="flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:6px;background:var(--bg)">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:10px;color:var(--muted-2);padding:40px 0">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+            <span style="font-size:13px">Preencha a conexão e clique em Analisar</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─ Ingestion Panel ─ -->
+      <div id="de-panel-ingestion" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div style="overflow-y:auto;max-height:60%;background:var(--surface);border-bottom:1px solid var(--border);padding:16px 22px;flex-shrink:0">
+
+          <!-- Source type toggle -->
+          <div style="display:flex;gap:4px;margin-bottom:18px;background:#f1f5f9;border-radius:8px;padding:3px;width:fit-content">
+            <button class="de-plat-tab active" onclick="deSetIngType('sql')" data-ingtype="sql">Via SQL</button>
+            <button class="de-plat-tab" onclick="deSetIngType('csv')" data-ingtype="csv">Via CSV</button>
+          </div>
+
+          <!-- ── SQL sub-form ── -->
+          <div id="de-ing-sql-form">
+            <div class="de-section-title">1. Fonte de dados</div>
+            <div class="de-grid-4">
+              <div class="fg"><label>Banco</label>
+                <select class="finput" id="de-ing-dialect">
+                  <option value="mssql">SQL Server</option>
+                  <option value="postgresql">PostgreSQL</option>
+                  <option value="mysql">MySQL</option>
+                </select>
+              </div>
+              <div class="fg"><label>Host / IP</label><input class="finput" id="de-ing-host" placeholder="servidor.domain.com"/></div>
+              <div class="fg"><label>Porta (opcional)</label><input class="finput" type="number" id="de-ing-port" placeholder="1433"/></div>
+              <div class="fg"><label>Database</label><input class="finput" id="de-ing-db" placeholder="nome_do_banco"/></div>
+            </div>
+            <div class="de-grid-2">
+              <div class="fg"><label>Usuário</label><input class="finput" id="de-ing-user" placeholder="sa"/></div>
+              <div class="fg"><label>Senha</label><input class="finput" type="password" id="de-ing-pass" placeholder="••••••••"/></div>
+            </div>
+            <div class="de-section-title">2. Query SQL</div>
+            <div class="de-sql" style="margin-bottom:14px">
+              <textarea id="de-ing-sql" placeholder="SELECT&#10;  id, nome, valor&#10;FROM dbo.vendas&#10;WHERE data_criacao >= '2024-01-01'"></textarea>
+            </div>
+            <div class="de-section-title">3. Destino — Microsoft Fabric</div>
+            <div class="de-grid-3">
+              <div class="fg"><label>Tenant ID</label><input class="finput" id="de-ing-tenant" placeholder="xxxxxxxx-xxxx-xxxx-xxxx"/></div>
+              <div class="fg"><label>Client ID</label><input class="finput" id="de-ing-client" placeholder="xxxxxxxx-xxxx-xxxx-xxxx"/></div>
+              <div class="fg"><label>Client Secret</label><input class="finput" type="password" id="de-ing-secret" placeholder="••••••••"/></div>
+            </div>
+            <div class="de-load-row" style="margin-bottom:12px">
+              <div class="fg"><label>Workspace</label>
+                <select class="finput" id="de-ing-ws" onchange="deOnWorkspaceChange()"><option value="">— clique em Carregar —</option></select>
+              </div>
+              <div class="fg"><label>Lakehouse</label>
+                <select class="finput" id="de-ing-lh"><option value="">— selecione workspace —</option></select>
+              </div>
+              <div style="flex-shrink:0;display:flex;flex-direction:column">
+                <label style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:5px">&nbsp;</label>
+                <button class="btn" id="de-load-ws-btn" onclick="deLoadLakehouses()" style="white-space:nowrap;height:38px">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                  Carregar
+                </button>
+              </div>
+            </div>
+            <div style="max-width:320px;margin-bottom:14px">
+              <div class="fg"><label>Nome da tabela destino</label><input class="finput" id="de-ing-table" placeholder="vendas_2024"/></div>
+            </div>
+          </div>
+
+          <!-- ── CSV sub-form ── -->
+          <div id="de-ing-csv-form" style="display:none">
+            <!-- Destination selector -->
+            <div class="de-section-title" style="margin-bottom:10px">Destino</div>
+            <div style="display:flex;gap:4px;margin-bottom:16px;background:#f1f5f9;border-radius:8px;padding:3px;width:fit-content">
+              <button class="de-plat-tab active" onclick="deSetUploadDest('fabric')" data-udest="fabric">Microsoft Fabric</button>
+              <button class="de-plat-tab" onclick="deSetUploadDest('databricks')" data-udest="databricks">Databricks</button>
+            </div>
+            <!-- Drop zone -->
+            <div class="de-section-title" style="margin-bottom:10px">Arquivo CSV</div>
+            <div class="de-dropzone" id="de-dropzone" onclick="document.getElementById('de-file-input').click()"
+                 ondragover="event.preventDefault();this.classList.add('drag-over')"
+                 ondragleave="this.classList.remove('drag-over')"
+                 ondrop="deHandleDrop(event)">
+              <input type="file" id="de-file-input" accept=".csv" style="display:none" onchange="deHandleFileSelect(this)">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".45"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <div id="de-file-label" style="font-size:13px;font-weight:500;color:var(--text)">Clique ou arraste um arquivo CSV</div>
+              <div style="font-size:11px;color:var(--muted-2)">Apenas arquivos .csv</div>
+            </div>
+            <!-- Fabric creds -->
+            <div id="de-up-form-fabric">
+              <div class="de-section-title" style="margin-bottom:10px">Credenciais Microsoft Fabric</div>
+              <div class="de-grid-3">
+                <div class="fg"><label>Tenant ID</label><input class="finput" id="de-up-tenant" placeholder="xxxxxxxx-xxxx-xxxx-xxxx"/></div>
+                <div class="fg"><label>Client ID</label><input class="finput" id="de-up-client" placeholder="xxxxxxxx-xxxx-xxxx-xxxx"/></div>
+                <div class="fg"><label>Client Secret</label><input class="finput" type="password" id="de-up-secret" placeholder="••••••••"/></div>
+              </div>
+              <div class="de-load-row" style="margin-bottom:12px">
+                <div class="fg"><label>Workspace</label>
+                  <select class="finput" id="de-up-ws" onchange="deOnUploadWorkspaceChange()"><option value="">— clique em Carregar —</option></select>
+                </div>
+                <div class="fg"><label>Lakehouse</label>
+                  <select class="finput" id="de-up-lh"><option value="">— selecione lakehouse —</option></select>
+                </div>
+                <div style="flex-shrink:0;display:flex;flex-direction:column">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:5px">&nbsp;</label>
+                  <button class="btn" id="de-up-load-ws-btn" onclick="deLoadUploadLakehouses()" style="white-space:nowrap;height:38px">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    Carregar
+                  </button>
+                </div>
+              </div>
+              <div class="fg" style="max-width:320px;margin-bottom:14px">
+                <label>Nome da tabela destino</label>
+                <input class="finput" id="de-up-fab-table" placeholder="minha_tabela"/>
+              </div>
+            </div>
+            <!-- Databricks creds -->
+            <div id="de-up-form-databricks" style="display:none">
+              <div class="de-section-title" style="margin-bottom:10px">Credenciais Databricks</div>
+              <div class="de-grid-2">
+                <div class="fg"><label>Workspace URL</label><input class="finput" id="de-up-db-host" placeholder="https://adb-xxx.azuredatabricks.net"/></div>
+                <div class="fg"><label>Personal Access Token</label><input class="finput" type="password" id="de-up-db-token" placeholder="dapi••••••••••••"/></div>
+              </div>
+              <div class="de-grid-2" style="margin-bottom:14px">
+                <div class="fg"><label>Nome do arquivo no DBFS</label><input class="finput" id="de-up-db-table" placeholder="vendas_2024"/></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Single run button -->
+          <button class="btn btn-primary" id="de-ing-run-btn" onclick="deRunIngestion()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+            Executar Ingestão
+          </button>
+        </div>
+        <div id="de-ingestion-output" style="flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:6px;background:var(--bg)">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:10px;color:var(--muted-2);padding:40px 0">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+            <span style="font-size:13px">Preencha o formulário e clique em Executar Ingestão</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ VIEW: Data Maturity ══ -->
+  <div class="view hidden" id="view-data-maturity" style="flex-direction:column">
+    <div class="topbar" style="flex-shrink:0">
+      <div class="topbar-title" style="flex:1">Maturidade de Dados — DAMA-DMBOK</div>
+      <button class="btn btn-secondary btn-sm" onclick="dmReset()" id="dm-reset-btn" style="display:none">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Nova avaliação
+      </button>
+    </div>
+
+    <!-- Form header bar -->
+    <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 22px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
+      <p style="font-size:12.5px;color:var(--muted);line-height:1.5;margin:0">Descreva o estado atual de cada domínio DMBOK. Quanto mais detalhe, mais preciso o diagnóstico.</p>
+      <button class="btn btn-primary" id="dm-run-btn" onclick="dmRunAnalysis()" style="flex-shrink:0;margin-left:20px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Avaliar Maturidade
+      </button>
+    </div>
+
+    <!-- Form panel -->
+    <div id="dm-form-panel" style="flex:1;overflow-y:auto;background:var(--surface);padding:16px 22px">
+      <div class="de-grid-3">
+        <div class="fg">
+          <div class="de-section-title">1. Governança de Dados</div>
+          <textarea class="finput" id="dm-governanca" rows="4" style="resize:vertical;font-family:inherit;font-size:12.5px;margin:0" placeholder="Ex: Sem comitê de dados formal. Políticas ad hoc. Sem data stewards designados."></textarea>
+        </div>
+        <div class="fg">
+          <div class="de-section-title">2. Arquitetura de Dados</div>
+          <textarea class="finput" id="dm-arquitetura" rows="4" style="resize:vertical;font-family:inherit;font-size:12.5px;margin:0" placeholder="Ex: Dados em silos por área. Sem arquitetura corporativa. Sistemas legados sem integração."></textarea>
+        </div>
+        <div class="fg">
+          <div class="de-section-title">3. Modelagem e Design</div>
+          <textarea class="finput" id="dm-modelagem" rows="4" style="resize:vertical;font-family:inherit;font-size:12.5px;margin:0" placeholder="Ex: Modelagem por projeto sem padrões. Modelos não documentados. DW parcial."></textarea>
+        </div>
+        <div class="fg">
+          <div class="de-section-title">4. Armazenamento e Operações</div>
+          <textarea class="finput" id="dm-armazenamento" rows="4" style="resize:vertical;font-family:inherit;font-size:12.5px;margin:0" placeholder="Ex: Bancos on-premise. Backup manual semanal. Sem estratégia de retenção."></textarea>
+        </div>
+        <div class="fg">
+          <div class="de-section-title">5. Segurança de Dados</div>
+          <textarea class="finput" id="dm-seguranca" rows="4" style="resize:vertical;font-family:inherit;font-size:12.5px;margin:0" placeholder="Ex: Acesso básico por perfil. Sem criptografia em trânsito. LGPD parcial."></textarea>
+        </div>
+        <div class="fg">
+          <div class="de-section-title">6. Integração e Interoperabilidade</div>
+          <textarea class="finput" id="dm-integracao" rows="4" style="resize:vertical;font-family:inherit;font-size:12.5px;margin:0" placeholder="Ex: Integrações via CSV. Algumas APIs REST. Sem barramento corporativo."></textarea>
+        </div>
+        <div class="fg">
+          <div class="de-section-title">7. Documentação e Metadados</div>
+          <textarea class="finput" id="dm-metadados" rows="4" style="resize:vertical;font-family:inherit;font-size:12.5px;margin:0" placeholder="Ex: Docs desatualizadas em Excel. Sem catálogo. Linhagem não mapeada."></textarea>
+        </div>
+        <div class="fg">
+          <div class="de-section-title">8. Qualidade de Dados</div>
+          <textarea class="finput" id="dm-qualidade" rows="4" style="resize:vertical;font-family:inherit;font-size:12.5px;margin:0" placeholder="Ex: Checks manuais periódicos. Sem regras automatizadas. Problemas reativos."></textarea>
+        </div>
+        <div class="fg">
+          <div class="de-section-title">9. Data Warehousing e BI</div>
+          <textarea class="finput" id="dm-bi" rows="4" style="resize:vertical;font-family:inherit;font-size:12.5px;margin:0" placeholder="Ex: Power BI em 3 áreas. DW parcial no SQL Server. Sem camada semântica."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Output panel -->
+    <div id="dm-output-panel" style="display:none;flex:1;overflow-y:auto;padding:20px 22px;flex-direction:column;gap:6px;background:var(--bg)">
+      <div id="dm-output" style="max-width:780px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ── Toast stack ── -->
@@ -691,11 +1001,12 @@ let allDatasets = [];
 
 // ── Navigation ──
 function navTo(view) {
-  ['list','report','config'].forEach(v => {
+  ['list','report','config','data-eng','data-maturity'].forEach(v => {
     document.getElementById('view-' + v).classList.toggle('hidden', v !== view);
   });
-  // Nav active state
   document.getElementById('nav-dashboards').classList.toggle('active', view === 'list' || view === 'report');
+  document.getElementById('nav-data-eng').classList.toggle('active', view === 'data-eng');
+  document.getElementById('nav-data-maturity').classList.toggle('active', view === 'data-maturity');
 }
 
 // ── Init ──
@@ -1490,9 +1801,721 @@ function toast(msg, type = 'info') {
   setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 3500);
 }
 
+// ── Ingestion type (SQL vs CSV) ──
+let _deIngType = 'sql';
+let _deUploadDest = 'fabric';
+let _deUploadFile = null;
+let _deUpWsOptions = [];
+let _deLastOpCtx = {};
+
+function deSetIngType(type) {
+  _deIngType = type;
+  document.querySelectorAll('[data-ingtype]').forEach(t => t.classList.toggle('active', t.dataset.ingtype === type));
+  document.getElementById('de-ing-sql-form').style.display = type === 'sql' ? '' : 'none';
+  document.getElementById('de-ing-csv-form').style.display = type === 'csv' ? '' : 'none';
+  const btn = document.getElementById('de-ing-run-btn');
+  if (btn) {
+    const icon = type === 'csv'
+      ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'
+      : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>';
+    btn.innerHTML = icon + (type === 'csv' ? ' Fazer Upload' : ' Executar Ingestão');
+  }
+}
+
+function deSetUploadDest(dest) {
+  _deUploadDest = dest;
+  document.querySelectorAll('[data-udest]').forEach(t => t.classList.toggle('active', t.dataset.udest === dest));
+  document.getElementById('de-up-form-fabric').style.display = dest === 'fabric' ? '' : 'none';
+  document.getElementById('de-up-form-databricks').style.display = dest === 'databricks' ? '' : 'none';
+}
+
+function deHandleFileSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+  _deUploadFile = file;
+  const dz = document.getElementById('de-dropzone');
+  dz.classList.add('has-file');
+  document.getElementById('de-file-label').textContent =
+    `${file.name}  ·  ${(file.size / 1024).toFixed(1)} KB`;
+}
+
+function deHandleDrop(event) {
+  event.preventDefault();
+  const dz = document.getElementById('de-dropzone');
+  dz.classList.remove('drag-over');
+  const file = event.dataTransfer.files[0];
+  if (!file || !file.name.toLowerCase().endsWith('.csv')) {
+    toast('Por favor, selecione um arquivo .csv', 'err'); return;
+  }
+  _deUploadFile = file;
+  dz.classList.add('has-file');
+  document.getElementById('de-file-label').textContent =
+    `${file.name}  ·  ${(file.size / 1024).toFixed(1)} KB`;
+}
+
+async function deLoadUploadLakehouses() {
+  const tenant_id = document.getElementById('de-up-tenant').value.trim();
+  const client_id = document.getElementById('de-up-client').value.trim();
+  const client_secret = document.getElementById('de-up-secret').value.trim();
+  if (!tenant_id || !client_id || !client_secret) {
+    toast('Preencha as credenciais do Fabric primeiro', 'err'); return;
+  }
+  const btn = document.getElementById('de-up-load-ws-btn');
+  btn.disabled = true;
+  const orig = btn.innerHTML;
+  btn.textContent = 'Carregando...';
+  try {
+    const r = await api('/api/fabric/lakehouses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant_id, client_id, client_secret }),
+    });
+    _deUpWsOptions = r;
+    const wsEl = document.getElementById('de-up-ws');
+    wsEl.innerHTML = '<option value="">Selecione workspace</option>';
+    r.forEach(ws => {
+      const opt = document.createElement('option');
+      opt.value = ws.workspace_id;
+      if (ws.lakehouses && ws.lakehouses.length) {
+        opt.textContent = ws.workspace_name;
+      } else if (ws.lakehouses_error) {
+        opt.textContent = `${ws.workspace_name} (erro ao listar lakehouses)`;
+        opt.title = ws.lakehouses_error;
+      } else {
+        opt.textContent = `${ws.workspace_name} (sem lakehouse)`;
+      }
+      wsEl.appendChild(opt);
+    });
+    document.getElementById('de-up-lh').innerHTML = '<option value="">Selecione lakehouse</option>';
+    const withLh = r.filter(w => w.lakehouses && w.lakehouses.length);
+    const withErr = r.filter(w => w.lakehouses_error);
+    if (withErr.length) {
+      toast(`${r.length} workspace(s) encontrado(s), mas ${withErr.length} com erro de permissão ao listar lakehouses. O Service Principal precisa ser Membro ou Colaborador no workspace.`, 'err');
+    } else {
+      toast(`${r.length} workspace(s) · ${withLh.length} com lakehouse`, withLh.length ? 'ok' : 'info');
+    }
+  } catch (e) {
+    toast(`Erro: ${e.message}`, 'err');
+  } finally {
+    btn.disabled = false; btn.innerHTML = orig;
+  }
+}
+
+function deOnUploadWorkspaceChange() {
+  const wsId = document.getElementById('de-up-ws').value;
+  const lhEl = document.getElementById('de-up-lh');
+  lhEl.innerHTML = '<option value="">Selecione lakehouse</option>';
+  const ws = _deUpWsOptions.find(w => w.workspace_id === wsId);
+  if (ws) ws.lakehouses.forEach(lh => {
+    const opt = document.createElement('option');
+    opt.value = lh.id; opt.textContent = lh.name;
+    lhEl.appendChild(opt);
+  });
+}
+
 // ── Utils ──
 function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Data Engineering ──
+let _deMode = 'analysis';
+let _dePlatform = 'databricks';
+let _deAbort = null;
+let _deWsOptions = [];
+let _deAnalysisRawText = '';
+let _deAnalysisPlatform = '';
+
+function deSetMode(mode) {
+  _deMode = mode;
+  document.querySelectorAll('.de-mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+  ['analysis','ingestion'].forEach(m => {
+    const p = document.getElementById(`de-panel-${m}`);
+    if (p) p.style.display = m === mode ? 'flex' : 'none';
+  });
+}
+
+function deSetPlatform(platform) {
+  _dePlatform = platform;
+  document.querySelectorAll('.de-plat-tab').forEach(t => t.classList.toggle('active', t.dataset.plat === platform));
+  document.getElementById('de-form-databricks').style.display = platform === 'databricks' ? '' : 'none';
+  document.getElementById('de-form-fabric').style.display = platform === 'fabric' ? '' : 'none';
+}
+
+function _deIconOk() {
+  return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--green)"><polyline points="20 6 9 17 4 12"/></svg>`;
+}
+function _deIconErr() {
+  return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--red)"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+}
+function _deIconSpin() {
+  return `<span style="display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></span>`;
+}
+
+function _deUpsertStep(container, key, msg, status) {
+  let el = null;
+  container.querySelectorAll('[data-step]').forEach(node => {
+    if (node.dataset.step === key) el = node;
+  });
+  if (!el) {
+    el = document.createElement('div');
+    el.dataset.step = key;
+    const terminal = container.querySelector('.de-terminal-area');
+    if (terminal) container.insertBefore(el, terminal);
+    else container.appendChild(el);
+  }
+  el.className = `de-step de-step-${status}`;
+  const icon = status === 'ok' ? _deIconOk() : status === 'err' ? _deIconErr() : _deIconSpin();
+  el.innerHTML = `<span class="de-step-icon">${icon}</span><span>${escHtml(msg)}</span>`;
+}
+
+function _deHandleEvent(data, outputEl, terminalEl) {
+  let d;
+  try { d = JSON.parse(data); } catch { return; }
+
+  const msg = d.message || d.msg || '';
+  const key = d.step || d.key || msg;
+
+  if (d.type === 'progress') {
+    const status = msg.startsWith('✓') ? 'ok' : 'run';
+    _deUpsertStep(outputEl, key, msg, status);
+  } else if (d.type === 'analysis_start') {
+    _deAnalysisRawText = '';
+    terminalEl.innerHTML = '';
+    terminalEl.className = 'de-terminal de-terminal-area';
+    terminalEl.style.display = '';
+  } else if (d.type === 'analysis_chunk') {
+    _deAnalysisRawText += d.text;
+    const cur = terminalEl.querySelector('.de-cursor');
+    if (cur) cur.remove();
+    terminalEl.innerHTML += escHtml(d.text).replace(/\n/g, '<br>');
+    terminalEl.innerHTML += '<span class="de-cursor">▍</span>';
+    terminalEl.parentElement.scrollTop = terminalEl.parentElement.scrollHeight;
+  } else if (d.type === 'done') {
+    // Finalize spinning steps
+    outputEl.querySelectorAll('[data-step]').forEach(node => {
+      if (node.classList.contains('de-step-run')) {
+        const txt = node.querySelector('span:last-child');
+        const label = txt ? txt.textContent : 'Concluído';
+        node.className = 'de-step de-step-ok';
+        node.innerHTML = `<span class="de-step-icon">${_deIconOk()}</span><span>${escHtml(label)}</span>`;
+      }
+    });
+    // Render formatted report and add export button
+    if (_deAnalysisRawText) {
+      terminalEl.className = 'de-report de-terminal-area';
+      terminalEl.innerHTML = renderMarkdown(_deAnalysisRawText);
+      terminalEl.parentElement.scrollTop = 0;
+      // Export bar
+      let bar = outputEl.querySelector('.de-export-bar');
+      if (!bar) {
+        bar = document.createElement('div');
+        bar.className = 'de-export-bar';
+        outputEl.appendChild(bar);
+      }
+      bar.innerHTML = `
+        <button class="btn btn-primary" onclick="deExportPdf()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          Exportar PDF
+        </button>
+        <span style="font-size:12px;color:var(--muted-2)">Relatório de auditoria pronto</span>`;
+    }
+    if (d.table || d.dbfs_path) {
+      _deRenderSummaryCard(outputEl, d);
+    }
+  } else if (d.type === 'error') {
+    const cur = terminalEl.querySelector('.de-cursor');
+    if (cur) cur.remove();
+    _deUpsertStep(outputEl, 'error-' + Date.now(), msg || 'Erro desconhecido', 'err');
+  }
+}
+
+function _deGetOrCreateTerminal(outputEl) {
+  let t = outputEl.querySelector('.de-terminal-area');
+  if (!t) {
+    t = document.createElement('div');
+    t.className = 'de-terminal de-terminal-area';
+    outputEl.appendChild(t);
+  }
+  return t;
+}
+
+async function _deStream(endpoint, body, outputEl, btns) {
+  if (_deAbort) _deAbort.abort();
+  _deAbort = new AbortController();
+
+  outputEl.innerHTML = '';
+  const terminalEl = _deGetOrCreateTerminal(outputEl);
+  terminalEl.style.display = 'none';
+  btns.forEach(b => { if (b) b.disabled = true; });
+
+  const isForm = body instanceof FormData;
+  const fetchHeaders = { 'Authorization': `Bearer ${_authToken}` };
+  if (!isForm) fetchHeaders['Content-Type'] = 'application/json';
+
+  try {
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      headers: fetchHeaders,
+      body: isForm ? body : JSON.stringify(body),
+      signal: _deAbort.signal,
+    });
+
+    if (!resp.ok) {
+      let msg = `Erro HTTP ${resp.status}`;
+      try { const d = await resp.json(); msg = d.detail || msg; } catch {}
+      _deUpsertStep(outputEl, 'http-err', msg, 'err');
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const parts = buf.split('\n\n');
+      buf = parts.pop();
+      for (const part of parts) {
+        const line = part.trim();
+        if (line.startsWith('data: ')) {
+          _deHandleEvent(line.slice(6), outputEl, terminalEl);
+        }
+      }
+    }
+  } catch (e) {
+    if (e.name !== 'AbortError') {
+      _deUpsertStep(outputEl, 'conn-err', e.message, 'err');
+    }
+  } finally {
+    btns.forEach(b => { if (b) b.disabled = false; });
+  }
+}
+
+function deExportPdf() {
+  if (!_deAnalysisRawText) return;
+  const platformName = _deAnalysisPlatform === 'databricks' ? 'Databricks' : 'Microsoft Fabric';
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
+  const timeStr = now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  const bodyHtml = renderMarkdown(_deAnalysisRawText);
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="utf-8">
+<title>Auditoria ${platformName} — ${dateStr}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;color:#1e293b;background:#fff}
+.cover{background:linear-gradient(135deg,#0f2d5e 0%,#1e4d8c 100%);color:#fff;padding:56px 64px 48px;page-break-after:always}
+.cover-logo{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.7;margin-bottom:32px}
+.cover-title{font-size:30px;font-weight:700;line-height:1.2;margin-bottom:12px}
+.cover-sub{font-size:15px;opacity:.8;margin-bottom:40px}
+.cover-meta{border-top:1px solid rgba(255,255,255,.2);padding-top:20px;font-size:12px;opacity:.7;display:flex;gap:32px}
+.content{padding:48px 64px;max-width:900px;margin:0 auto}
+h1{font-size:22px;font-weight:700;color:#0f172a;border-bottom:2px solid #e2e8f0;padding-bottom:10px;margin:0 0 24px}
+h2{font-size:16px;font-weight:700;color:#0f2d5e;margin:32px 0 12px;display:flex;align-items:center;gap:6px}
+h3{font-size:14px;font-weight:600;color:#334155;margin:20px 0 8px}
+p{line-height:1.75;font-size:13.5px;color:#374151;margin:0 0 14px}
+ul{padding-left:22px;margin:0 0 16px}
+li{margin:6px 0;font-size:13.5px;line-height:1.65;color:#374151}
+strong{color:#0f172a}
+em{color:#475569}
+code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12px;font-family:'Cascadia Code','Consolas',monospace;color:#0f172a}
+pre{background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:16px;overflow-x:auto;margin:12px 0 18px}
+pre code{background:none;padding:0;font-size:12px}
+table{border-collapse:collapse;width:100%;margin:14px 0 20px;font-size:13px}
+th{background:#0f2d5e;color:#fff;padding:9px 14px;text-align:left;font-weight:600;font-size:12px}
+td{padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:13px}
+tr:nth-child(even) td{background:#f8fafc}
+.footer{border-top:1px solid #e2e8f0;padding:18px 64px;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;position:fixed;bottom:0;left:0;right:0;background:#fff}
+@media print{
+  @page{size:A4;margin:0}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .cover{page-break-after:always}
+  .no-print{display:none}
+  .footer{position:fixed;bottom:0}
+}
+</style>
+</head><body>
+<div class="cover">
+  <div class="cover-logo">TitanBI &mdash; Engenharia de Dados</div>
+  <div class="cover-title">Relatório de Auditoria<br>${platformName}</div>
+  <div class="cover-sub">Análise automatizada de ambiente de dados por agente de IA</div>
+  <div class="cover-meta">
+    <span>Data: ${dateStr}</span>
+    <span>Hora: ${timeStr}</span>
+    <span>Plataforma: ${platformName}</span>
+    <span>Gerado por: TitanBI</span>
+  </div>
+</div>
+<div class="content">${bodyHtml}</div>
+<div class="footer">
+  <span>TitanBI &mdash; Relatório Confidencial</span>
+  <span>${dateStr} ${timeStr}</span>
+</div>
+<script>window.onload=()=>{ setTimeout(()=>window.print(),400); }<\/script>
+</body></html>`);
+  win.document.close();
+}
+
+// ── Data Maturity ─────────────────────────────────────────────────────────────
+let _dmAbort = null;
+let _dmRawText = '';
+
+async function dmRunAnalysis() {
+  const fields = ['governanca','arquitetura','modelagem','armazenamento','seguranca','integracao','metadados','qualidade','bi'];
+  const body = {};
+  fields.forEach(k => { body[k] = document.getElementById('dm-' + k).value.trim(); });
+
+  if (!fields.some(k => body[k])) { toast('Preencha ao menos um domínio antes de avaliar', 'err'); return; }
+
+  const outputEl = document.getElementById('dm-output');
+  const btn = document.getElementById('dm-run-btn');
+
+  // Switch panels
+  document.getElementById('dm-form-panel').style.display = 'none';
+  const outPanel = document.getElementById('dm-output-panel');
+  outPanel.style.display = 'flex';
+  document.getElementById('dm-reset-btn').style.display = '';
+
+  if (_dmAbort) _dmAbort.abort();
+  _dmAbort = new AbortController();
+  _dmRawText = '';
+  outputEl.innerHTML = '';
+
+  const terminalEl = document.createElement('div');
+  terminalEl.className = 'de-terminal de-terminal-area';
+  terminalEl.style.display = 'none';
+  outputEl.appendChild(terminalEl);
+  btn.disabled = true;
+
+  try {
+    const resp = await fetch('/api/data-maturity/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_authToken}` },
+      body: JSON.stringify(body),
+      signal: _dmAbort.signal,
+    });
+    if (!resp.ok) {
+      let msg = `Erro HTTP ${resp.status}`;
+      try { const d = await resp.json(); msg = d.detail || msg; } catch {}
+      _deUpsertStep(outputEl, 'http-err', msg, 'err');
+      return;
+    }
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const parts = buf.split('\n\n');
+      buf = parts.pop();
+      for (const part of parts) {
+        const line = part.trim();
+        if (!line.startsWith('data: ')) continue;
+        let d;
+        try { d = JSON.parse(line.slice(6)); } catch { continue; }
+        if (d.type === 'analysis_start') {
+          _dmRawText = '';
+          terminalEl.innerHTML = '';
+          terminalEl.className = 'de-terminal de-terminal-area';
+          terminalEl.style.display = '';
+        } else if (d.type === 'analysis_chunk') {
+          _dmRawText += d.text;
+          const cur = terminalEl.querySelector('.de-cursor');
+          if (cur) cur.remove();
+          terminalEl.innerHTML += escHtml(d.text).replace(/\n/g, '<br>');
+          terminalEl.innerHTML += '<span class="de-cursor">▍</span>';
+          outPanel.scrollTop = outPanel.scrollHeight;
+        } else if (d.type === 'done') {
+          if (_dmRawText) {
+            terminalEl.className = 'de-report de-terminal-area';
+            terminalEl.innerHTML = renderMarkdown(_dmRawText);
+            outPanel.scrollTop = 0;
+            let bar = outputEl.querySelector('.de-export-bar');
+            if (!bar) { bar = document.createElement('div'); bar.className = 'de-export-bar'; outputEl.appendChild(bar); }
+            bar.innerHTML = `
+              <button class="btn btn-primary" onclick="dmExportPdf()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                Exportar PDF
+              </button>
+              <span style="font-size:12px;color:var(--muted-2)">Diagnóstico DMBOK concluído</span>`;
+          }
+        } else if (d.type === 'error') {
+          const cur = terminalEl.querySelector('.de-cursor');
+          if (cur) cur.remove();
+          _deUpsertStep(outputEl, 'error-' + Date.now(), d.message || 'Erro desconhecido', 'err');
+        }
+      }
+    }
+  } catch (e) {
+    if (e.name !== 'AbortError') _deUpsertStep(outputEl, 'conn-err', e.message, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function dmReset() {
+  if (_dmAbort) _dmAbort.abort();
+  _dmRawText = '';
+  document.getElementById('dm-output').innerHTML = '';
+  document.getElementById('dm-output-panel').style.display = 'none';
+  document.getElementById('dm-form-panel').style.display = '';
+  document.getElementById('dm-reset-btn').style.display = 'none';
+}
+
+function dmExportPdf() {
+  if (!_dmRawText) return;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
+  const timeStr = now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  const bodyHtml = renderMarkdown(_dmRawText);
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="utf-8">
+<title>Maturidade de Dados DMBOK — ${dateStr}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;color:#1e293b;background:#fff}
+.cover{background:linear-gradient(135deg,#1e3a5f 0%,#3b5998 100%);color:#fff;padding:56px 64px 48px;page-break-after:always}
+.cover-logo{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.7;margin-bottom:32px}
+.cover-title{font-size:30px;font-weight:700;line-height:1.2;margin-bottom:12px}
+.cover-sub{font-size:15px;opacity:.8;margin-bottom:40px}
+.cover-meta{border-top:1px solid rgba(255,255,255,.2);padding-top:20px;font-size:12px;opacity:.7;display:flex;gap:32px}
+.content{padding:48px 64px;max-width:900px;margin:0 auto}
+h1{font-size:22px;font-weight:700;color:#0f172a;border-bottom:2px solid #e2e8f0;padding-bottom:10px;margin:0 0 24px}
+h2{font-size:16px;font-weight:700;color:#1e3a5f;margin:32px 0 12px}
+h3{font-size:14px;font-weight:600;color:#334155;margin:20px 0 8px}
+p{line-height:1.75;font-size:13.5px;color:#374151;margin:0 0 14px}
+ul{padding-left:22px;margin:0 0 16px}li{margin:6px 0;font-size:13.5px;line-height:1.65;color:#374151}
+strong{color:#0f172a}code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12px;font-family:monospace;color:#0f172a}
+table{border-collapse:collapse;width:100%;margin:14px 0 20px;font-size:13px}
+th{background:#1e3a5f;color:#fff;padding:9px 14px;text-align:left;font-weight:600;font-size:12px}
+td{padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:13px}
+tr:nth-child(even) td{background:#f8fafc}
+.footer{border-top:1px solid #e2e8f0;padding:18px 64px;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;position:fixed;bottom:0;left:0;right:0;background:#fff}
+@media print{@page{size:A4;margin:0}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.cover{page-break-after:always}.footer{position:fixed;bottom:0}}
+</style>
+</head><body>
+<div class="cover">
+  <div class="cover-logo">TitanBI &mdash; Gestão de Dados</div>
+  <div class="cover-title">Diagnóstico de Maturidade<br>de Dados — DAMA-DMBOK</div>
+  <div class="cover-sub">Avaliação automatizada por agente especialista em gestão de dados</div>
+  <div class="cover-meta"><span>Data: ${dateStr}</span><span>Hora: ${timeStr}</span><span>Framework: DAMA-DMBOK v2</span><span>Gerado por: TitanBI</span></div>
+</div>
+<div class="content">${bodyHtml}</div>
+<div class="footer"><span>TitanBI &mdash; Diagnóstico Confidencial</span><span>${dateStr} ${timeStr}</span></div>
+<script>window.onload=()=>{ setTimeout(()=>window.print(),400); }<\/script>
+</body></html>`);
+  win.document.close();
+}
+
+function deRunAnalysis() {
+  const outputEl = document.getElementById('de-analysis-output');
+
+  let body, endpoint;
+  if (_dePlatform === 'databricks') {
+    const host = document.getElementById('de-db-host').value.trim();
+    const token = document.getElementById('de-db-token').value.trim();
+    if (!host || !token) { toast('Preencha Workspace URL e Token do Databricks', 'err'); return; }
+    body = { platform: 'databricks', host, token };
+    endpoint = '/api/databricks/analyze';
+  } else {
+    const tenant_id = document.getElementById('de-fab-tenant').value.trim();
+    const client_id = document.getElementById('de-fab-client').value.trim();
+    const client_secret = document.getElementById('de-fab-secret').value.trim();
+    if (!tenant_id || !client_id || !client_secret) { toast('Preencha Tenant ID, Client ID e Client Secret', 'err'); return; }
+    body = { platform: 'fabric', tenant_id, client_id, client_secret };
+    endpoint = '/api/fabric/analyze';
+  }
+
+  _deAnalysisPlatform = _dePlatform;
+  const btns = [...document.querySelectorAll('#de-form-databricks button, #de-form-fabric button')];
+  _deStream(endpoint, body, outputEl, btns);
+}
+
+async function deLoadLakehouses() {
+  const tenant_id = document.getElementById('de-ing-tenant').value.trim();
+  const client_id = document.getElementById('de-ing-client').value.trim();
+  const client_secret = document.getElementById('de-ing-secret').value.trim();
+  if (!tenant_id || !client_id || !client_secret) {
+    toast('Preencha as credenciais do Fabric primeiro', 'err');
+    return;
+  }
+  const btn = document.getElementById('de-load-ws-btn');
+  btn.disabled = true;
+  const origText = btn.innerHTML;
+  btn.textContent = 'Carregando...';
+  try {
+    const r = await api('/api/fabric/lakehouses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant_id, client_id, client_secret }),
+    });
+    _deWsOptions = r;
+    const wsEl = document.getElementById('de-ing-ws');
+    wsEl.innerHTML = '<option value="">Selecione workspace</option>';
+    r.forEach(ws => {
+      const opt = document.createElement('option');
+      opt.value = ws.workspace_id;
+      opt.textContent = ws.workspace_name;
+      wsEl.appendChild(opt);
+    });
+    document.getElementById('de-ing-lh').innerHTML = '<option value="">Selecione lakehouse</option>';
+    toast(`${r.length} workspace(s) carregado(s)`, 'ok');
+  } catch (e) {
+    toast(`Erro: ${e.message}`, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origText;
+  }
+}
+
+function deOnWorkspaceChange() {
+  const wsId = document.getElementById('de-ing-ws').value;
+  const lhEl = document.getElementById('de-ing-lh');
+  lhEl.innerHTML = '<option value="">Selecione lakehouse</option>';
+  const ws = _deWsOptions.find(w => w.workspace_id === wsId);
+  if (ws) {
+    ws.lakehouses.forEach(lh => {
+      const opt = document.createElement('option');
+      opt.value = lh.id;
+      opt.textContent = lh.name;
+      lhEl.appendChild(opt);
+    });
+  }
+}
+
+function _deRenderSummaryCard(outputEl, d) {
+  let card = outputEl.querySelector('.de-summary-card');
+  if (!card) { card = document.createElement('div'); card.className = 'de-summary-card'; outputEl.appendChild(card); }
+
+  const ctx = _deLastOpCtx || {};
+  const rows = [];
+
+  rows.push(['Operação', ctx.kind || (d.table ? 'Ingestão' : 'Upload')]);
+  rows.push(['Destino', ctx.destination || d.destination || '—']);
+  if (ctx.file) rows.push(['Arquivo CSV', ctx.file]);
+  if (ctx.source) rows.push(['Fonte', ctx.source]);
+  if (ctx.workspace) rows.push(['Workspace', ctx.workspace]);
+  if (ctx.lakehouse) rows.push(['Lakehouse', ctx.lakehouse]);
+  if (d.table) rows.push(['Tabela criada', d.table]);
+  if (d.dbfs_path) rows.push(['Caminho DBFS', d.dbfs_path]);
+  if (d.rows != null) rows.push(['Linhas', (d.rows).toLocaleString('pt-BR')]);
+  if (d.columns && d.columns.length) rows.push(['Colunas (' + d.columns.length + ')', d.columns.join(', ')]);
+  if (d.finished_at) rows.push(['Concluído em', d.finished_at]);
+
+  const gridRows = rows.map(([k, v]) =>
+    `<span style="color:var(--muted-2);white-space:nowrap">${escHtml(k)}</span><span style="word-break:break-all">${escHtml(String(v))}</span>`
+  ).join('');
+
+  card.style.cssText = 'margin-top:12px;background:var(--bg-2,#f8fafc);border:1.5px solid var(--border,#e2e8f0);border-radius:10px;padding:14px 16px;font-size:13px';
+  card.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      <span style="font-weight:700;font-size:14px">Resumo da operação</span>
+    </div>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:5px 16px;line-height:1.6">${gridRows}</div>
+    ${d.dbfs_path ? `<div style="margin-top:12px;background:#1e293b;color:#e2e8f0;border-radius:6px;padding:10px 12px;font-family:monospace;font-size:12px;line-height:1.7"><div style="color:#94a3b8;font-size:11px;margin-bottom:4px"># Use no seu notebook Databricks:</div>${escHtml('df = spark.read.csv("' + d.dbfs_path + '", header=True, inferSchema=True)\ndisplay(df)')}</div>` : ''}`;
+
+  outputEl.parentElement && (outputEl.parentElement.scrollTop = outputEl.parentElement.scrollHeight);
+}
+
+function deRunIngestion() {
+  const outputEl = document.getElementById('de-ingestion-output');
+  const btns = [...document.querySelectorAll('#de-panel-ingestion button')];
+
+  if (_deIngType === 'csv') {
+    if (!_deUploadFile) { toast('Selecione um arquivo CSV', 'err'); return; }
+    const fd = new FormData();
+    fd.append('file', _deUploadFile);
+    fd.append('destination', _deUploadDest);
+    if (_deUploadDest === 'fabric') {
+      const tenant_id = document.getElementById('de-up-tenant').value.trim();
+      const client_id = document.getElementById('de-up-client').value.trim();
+      const client_secret = document.getElementById('de-up-secret').value.trim();
+      const workspace_id = document.getElementById('de-up-ws').value;
+      const lakehouse_id = document.getElementById('de-up-lh').value;
+      const table_name = document.getElementById('de-up-fab-table').value.trim();
+      if (!tenant_id || !client_id || !client_secret) { toast('Preencha as credenciais do Fabric', 'err'); return; }
+      if (!workspace_id || !lakehouse_id) { toast('Selecione Workspace e Lakehouse', 'err'); return; }
+      if (!table_name) { toast('Informe o nome da tabela destino', 'err'); return; }
+      const wsOpt = _deUpWsOptions.find(w => w.workspace_id === workspace_id);
+      const lhOpt = wsOpt && wsOpt.lakehouses.find(l => l.id === lakehouse_id);
+      _deLastOpCtx = {
+        kind: 'CSV Upload', destination: 'Microsoft Fabric',
+        file: _deUploadFile.name,
+        workspace: wsOpt ? wsOpt.workspace_name : workspace_id,
+        lakehouse: lhOpt ? lhOpt.name : lakehouse_id,
+      };
+      fd.append('tenant_id', tenant_id);
+      fd.append('client_id', client_id);
+      fd.append('client_secret', client_secret);
+      fd.append('workspace_id', workspace_id);
+      fd.append('lakehouse_id', lakehouse_id);
+      fd.append('table_name', table_name);
+    } else {
+      const db_host = document.getElementById('de-up-db-host').value.trim();
+      const db_token = document.getElementById('de-up-db-token').value.trim();
+      const table_name = document.getElementById('de-up-db-table').value.trim();
+      if (!db_host || !db_token) { toast('Preencha Workspace URL e Token', 'err'); return; }
+      if (!table_name) { toast('Informe o nome do arquivo no DBFS', 'err'); return; }
+      _deLastOpCtx = { kind: 'CSV Upload', destination: 'Databricks', file: _deUploadFile.name, host: db_host };
+      fd.append('db_host', db_host);
+      fd.append('db_token', db_token);
+      fd.append('table_name', table_name);
+    }
+    _deStream('/api/upload/csv', fd, outputEl, btns);
+    return;
+  }
+
+  // SQL path
+  const db_type = document.getElementById('de-ing-dialect').value;
+  const host = document.getElementById('de-ing-host').value.trim();
+  const port = document.getElementById('de-ing-port').value.trim();
+  const database = document.getElementById('de-ing-db').value.trim();
+  const username = document.getElementById('de-ing-user').value.trim();
+  const password = document.getElementById('de-ing-pass').value.trim();
+  const sql = document.getElementById('de-ing-sql').value.trim();
+  const tenant_id = document.getElementById('de-ing-tenant').value.trim();
+  const client_id = document.getElementById('de-ing-client').value.trim();
+  const client_secret = document.getElementById('de-ing-secret').value.trim();
+  const workspace_id = document.getElementById('de-ing-ws').value;
+  const lakehouse_id = document.getElementById('de-ing-lh').value;
+  const table_name = document.getElementById('de-ing-table').value.trim();
+
+  if (!host || !database || !username || !sql) {
+    toast('Preencha Host, Database, Usuário e SQL', 'err'); return;
+  }
+  if (!tenant_id || !client_id || !client_secret) {
+    toast('Preencha as credenciais do Fabric', 'err'); return;
+  }
+  if (!workspace_id || !lakehouse_id) {
+    toast('Selecione Workspace e Lakehouse (clique em Carregar primeiro)', 'err'); return;
+  }
+  if (!table_name) {
+    toast('Informe o nome da tabela de destino', 'err'); return;
+  }
+
+  const ingWsOpt = _deWsOptions && _deWsOptions.find(w => w.workspace_id === workspace_id);
+  const ingLhOpt = ingWsOpt && ingWsOpt.lakehouses && ingWsOpt.lakehouses.find(l => l.id === lakehouse_id);
+  _deLastOpCtx = {
+    kind: 'Ingestão SQL', destination: 'Microsoft Fabric',
+    source: `${db_type.toUpperCase()} · ${host}/${database}`,
+    workspace: ingWsOpt ? ingWsOpt.workspace_name : workspace_id,
+    lakehouse: ingLhOpt ? ingLhOpt.name : lakehouse_id,
+  };
+
+  const body = {
+    db_dialect: db_type, db_host: host, db_port: port ? parseInt(port) : null,
+    db_name: database, db_user: username, db_password: password, sql_query: sql,
+    tenant_id, client_id, client_secret, workspace_id, lakehouse_id, table_name,
+  };
+  _deStream('/api/ingestion/run', body, outputEl, btns);
 }
 </script>
 </body>

@@ -11,9 +11,11 @@ if str(_APP_DIR) not in sys.path:
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
-from fastapi import FastAPI, HTTPException, Request
+import json as _json
+
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel
 
 from database import get_db, sync_metadata, get_dataset_schema, get_dataset_sync_status, sync_rls_dataset, sync_gateway_dataset, restore_sync_flags_from_db, _sync_flags
@@ -521,6 +523,448 @@ async def _chat_handler(req: ChatRequest, user_email: str = ""):
         "row_count": len(rows),
         "answer": answer,
     }
+
+
+# ── Data Engineering ──────────────────────────────────────────────────────────
+
+class DatabricksAnalyzeRequest(BaseModel):
+    host: str
+    token: str
+
+
+@app.post("/api/databricks/analyze")
+async def databricks_analyze(req: DatabricksAnalyzeRequest):
+    import databricks as _db
+    from ai import analyze_databricks_environment
+
+    def _evt(payload: dict) -> str:
+        return f"data: {_json.dumps(payload, ensure_ascii=False)}\n\n"
+
+    async def event_stream():
+        try:
+            yield _evt({"type": "progress", "step": "connect", "message": "Testando conexão com o workspace..."})
+            try:
+                await _db.test_connection(req.host, req.token)
+            except Exception as e:
+                yield _evt({"type": "error", "message": str(e)})
+                return
+            yield _evt({"type": "progress", "step": "connect", "message": "✓ Conexão estabelecida"})
+
+            yield _evt({"type": "progress", "step": "collect", "message": "Coletando clusters, jobs e catálogos..."})
+            try:
+                env_data = await _db.collect_environment(req.host, req.token)
+            except Exception as e:
+                yield _evt({"type": "error", "message": f"Erro ao coletar dados: {e}"})
+                return
+
+            n_clusters = len(env_data.get("clusters", []))
+            n_jobs = len(env_data.get("jobs", []))
+            n_cats = len(env_data.get("catalogs", []))
+            n_tables = len(env_data.get("tables_sample", []))
+
+            yield _evt({"type": "progress", "step": "collect", "message": f"✓ {n_clusters} clusters · {n_jobs} jobs · {n_cats} catálogos · {n_tables} tabelas amostradas"})
+            yield _evt({"type": "progress", "step": "analysis", "message": "Agente analisando o ambiente..."})
+            yield _evt({"type": "analysis_start"})
+
+            async for chunk in analyze_databricks_environment(env_data):
+                yield _evt({"type": "analysis_chunk", "text": chunk})
+
+            yield _evt({"type": "done"})
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            yield _evt({"type": "error", "message": f"Erro inesperado: {e}"})
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+# ── Fabric Lakehouses (for dropdown) ─────────────────────────────────────────
+
+class FabricCredsRequest(BaseModel):
+    tenant_id: str
+    client_id: str
+    client_secret: str
+
+
+@app.post("/api/fabric/lakehouses")
+async def fabric_lakehouses(req: FabricCredsRequest):
+    """Return workspaces + their lakehouses for the ingestion target dropdown."""
+    import fabric as _fab
+    try:
+        token = await _fab.get_token(req.tenant_id, req.client_id, req.client_secret)
+    except Exception as e:
+        raise HTTPException(400, str(e))
+
+    try:
+        workspaces = await _fab.get_workspaces(token)
+    except Exception as e:
+        raise HTTPException(400, f"Erro ao listar workspaces: {e}")
+
+    user_workspaces = [
+        w for w in workspaces
+        if w.get("type") not in ("PersonalGroup",) and w.get("name") not in ("My workspace",)
+    ]
+
+    if not user_workspaces:
+        raise HTTPException(404, "Nenhum workspace encontrado. Verifique as permissões do Service Principal no Fabric.")
+
+    async def _with_lakehouses(ws: dict) -> dict:
+        lh_error = None
+        try:
+            lhs = await _fab.get_lakehouses(token, ws["id"])
+        except Exception as e:
+            lhs = []
+            lh_error = str(e)
+        return {
+            "workspace_id": ws["id"],
+            "workspace_name": ws["name"],
+            "lakehouses": [{"id": lh["id"], "name": lh["name"]} for lh in lhs],
+            "lakehouses_error": lh_error,
+        }
+
+    results = await asyncio.gather(*[_with_lakehouses(ws) for ws in user_workspaces])
+    return results
+
+
+# ── Ingestion pipeline ────────────────────────────────────────────────────────
+
+class IngestionRequest(BaseModel):
+    db_dialect: str
+    db_host: str
+    db_port: int | None = None
+    db_name: str
+    db_user: str
+    db_password: str
+    sql_query: str
+    tenant_id: str
+    client_id: str
+    client_secret: str
+    workspace_id: str
+    lakehouse_id: str
+    table_name: str
+
+
+@app.post("/api/ingestion/run")
+async def ingestion_run(req: IngestionRequest):
+    import ingestion as _ing
+    from gateway import build_connection_string
+
+    def _evt(payload: dict) -> str:
+        return f"data: {_json.dumps(payload, ensure_ascii=False)}\n\n"
+
+    async def event_stream():
+        try:
+            conn_str = build_connection_string(
+                req.db_dialect, req.db_host, req.db_port,
+                req.db_name, req.db_user, req.db_password,
+            )
+            safe_name = "".join(c if c.isalnum() or c == "_" else "_" for c in req.table_name)
+            file_path = f"Files/ingestion/{safe_name}/data.parquet"
+
+            # 1. Extract
+            yield _evt({"type": "progress", "step": "extract", "message": f"Conectando à fonte ({req.db_dialect})..."})
+            try:
+                parquet_bytes, row_count, columns = await _ing.extract_data(conn_str, req.sql_query)
+            except Exception as e:
+                yield _evt({"type": "error", "message": f"Erro na extração: {e}"})
+                return
+
+            mb = round(len(parquet_bytes) / 1024 / 1024, 2)
+            yield _evt({"type": "progress", "step": "extract",
+                        "message": f"✓ {row_count:,} linhas · {len(columns)} colunas · {mb} MB (Parquet)"})
+
+            # 2. Auth
+            yield _evt({"type": "progress", "step": "auth", "message": "Autenticando no OneLake..."})
+            try:
+                onelake_token, fabric_token = await asyncio.gather(
+                    _ing.get_onelake_token(req.tenant_id, req.client_id, req.client_secret),
+                    _ing.get_fabric_token(req.tenant_id, req.client_id, req.client_secret),
+                )
+            except Exception as e:
+                yield _evt({"type": "error", "message": f"Erro de autenticação: {e}"})
+                return
+            yield _evt({"type": "progress", "step": "auth", "message": "✓ Tokens obtidos"})
+
+            # 3. Upload
+            yield _evt({"type": "progress", "step": "upload",
+                        "message": f"Fazendo upload para OneLake → {file_path}..."})
+            try:
+                await _ing.upload_to_onelake(onelake_token, req.workspace_id, req.lakehouse_id, file_path, parquet_bytes)
+            except Exception as e:
+                yield _evt({"type": "error", "message": f"Erro no upload: {e}"})
+                return
+            yield _evt({"type": "progress", "step": "upload", "message": "✓ Upload concluído"})
+
+            # 4. Register as Delta table
+            yield _evt({"type": "progress", "step": "table",
+                        "message": f"Registrando tabela '{safe_name}' no Fabric..."})
+            try:
+                op_id = await _ing.load_table(fabric_token, req.workspace_id, req.lakehouse_id, safe_name, file_path)
+            except Exception as e:
+                yield _evt({"type": "error", "message": f"Erro ao registrar tabela: {e}"})
+                return
+
+            if op_id:
+                yield _evt({"type": "progress", "step": "table", "message": "Aguardando Fabric processar a tabela..."})
+                status = await _ing.poll_operation(fabric_token, op_id)
+                if status != "Succeeded":
+                    yield _evt({"type": "error", "message": f"Fabric retornou status '{status}' ao criar a tabela."})
+                    return
+
+            yield _evt({"type": "progress", "step": "table",
+                        "message": f"✓ Tabela '{safe_name}' disponível no Lakehouse"})
+            import datetime as _dt
+            yield _evt({
+                "type": "done", "destination": "fabric",
+                "table": safe_name, "rows": row_count, "columns": columns,
+                "workspace_id": req.workspace_id, "lakehouse_id": req.lakehouse_id,
+                "finished_at": _dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            })
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            yield _evt({"type": "error", "message": f"Erro inesperado: {e}"})
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+class FabricAnalyzeRequest(BaseModel):
+    tenant_id: str
+    client_id: str
+    client_secret: str
+
+
+@app.post("/api/fabric/analyze")
+async def fabric_analyze(req: FabricAnalyzeRequest):
+    import fabric as _fab
+    from ai import analyze_fabric_environment
+
+    def _evt(payload: dict) -> str:
+        return f"data: {_json.dumps(payload, ensure_ascii=False)}\n\n"
+
+    async def event_stream():
+        try:
+            yield _evt({"type": "progress", "step": "token", "message": "Autenticando no Microsoft Entra ID..."})
+            try:
+                token = await _fab.get_token(req.tenant_id, req.client_id, req.client_secret)
+            except Exception as e:
+                yield _evt({"type": "error", "message": str(e)})
+                return
+            yield _evt({"type": "progress", "step": "token", "message": "✓ Token obtido com sucesso"})
+
+            yield _evt({"type": "progress", "step": "collect", "message": "Carregando workspaces, Lakehouses e Pipelines..."})
+            try:
+                env_data = await _fab.collect_environment(req.tenant_id, req.client_id, req.client_secret)
+            except Exception as e:
+                yield _evt({"type": "error", "message": f"Erro ao coletar dados: {e}"})
+                return
+
+            n_ws = len(env_data.get("workspaces", []))
+            total_ws = env_data.get("total_workspaces", n_ws)
+            n_lh = sum(len(w.get("lakehouses", [])) for w in env_data.get("workspaces", []))
+            n_pip = sum(len(w.get("pipelines", [])) for w in env_data.get("workspaces", []))
+
+            yield _evt({"type": "progress", "step": "collect", "message": f"✓ {total_ws} workspaces · {n_lh} Lakehouses · {n_pip} pipelines"})
+            yield _evt({"type": "progress", "step": "analysis", "message": "Agente analisando o ambiente Fabric..."})
+            yield _evt({"type": "analysis_start"})
+
+            async for chunk in analyze_fabric_environment(env_data):
+                yield _evt({"type": "analysis_chunk", "text": chunk})
+
+            yield _evt({"type": "done"})
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            yield _evt({"type": "error", "message": f"Erro inesperado: {e}"})
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+# ── CSV Upload ────────────────────────────────────────────────────────────────
+
+@app.post("/api/upload/csv")
+async def upload_csv_route(
+    file: UploadFile = File(...),
+    destination: str = Form(...),      # 'fabric' | 'databricks'
+    table_name: str = Form(...),
+    # Databricks
+    db_host: str = Form(None),
+    db_token: str = Form(None),
+    # Fabric
+    tenant_id: str = Form(None),
+    client_id: str = Form(None),
+    client_secret: str = Form(None),
+    workspace_id: str = Form(None),
+    lakehouse_id: str = Form(None),
+):
+    import upload as _up
+    import ingestion as _ing
+
+    # Read file into memory before StreamingResponse starts — UploadFile closes after handler returns
+    file_bytes = await file.read()
+
+    def _evt(payload: dict) -> str:
+        return f"data: {_json.dumps(payload, ensure_ascii=False)}\n\n"
+
+    async def event_stream():
+        try:
+            size_kb = round(len(file_bytes) / 1024, 1)
+
+            yield _evt({"type": "progress", "step": "parse",
+                        "message": f"Lendo CSV ({size_kb} KB)..."})
+            try:
+                parquet_bytes, row_count, columns = await _up.csv_to_parquet(file_bytes)
+            except Exception as e:
+                yield _evt({"type": "error", "message": f"Erro ao processar CSV: {e}"})
+                return
+
+            mb = round(len(parquet_bytes) / 1024 / 1024, 2)
+            yield _evt({"type": "progress", "step": "parse",
+                        "message": f"✓ {row_count:,} linhas · {len(columns)} colunas · {mb} MB"})
+
+            if destination == "databricks":
+                yield _evt({"type": "progress", "step": "upload",
+                            "message": "Enviando para Databricks DBFS..."})
+                try:
+                    dbfs_path = await _up.upload_csv_to_databricks(
+                        db_host, db_token, file_bytes, table_name
+                    )
+                except Exception as e:
+                    yield _evt({"type": "error", "message": f"Erro no upload: {e}"})
+                    return
+                yield _evt({"type": "progress", "step": "upload",
+                            "message": f"✓ Arquivo salvo em {dbfs_path}"})
+                import datetime as _dt
+                yield _evt({
+                    "type": "done", "destination": "databricks",
+                    "dbfs_path": dbfs_path, "rows": row_count, "columns": columns,
+                    "finished_at": _dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                })
+
+            elif destination == "fabric":
+                safe_name = "".join(c if c.isalnum() or c == "_" else "_" for c in table_name)
+                file_path = f"Files/ingestion/{safe_name}/data.parquet"
+
+                yield _evt({"type": "progress", "step": "auth",
+                            "message": "Autenticando no Microsoft Fabric..."})
+                try:
+                    onelake_token, fabric_token = await asyncio.gather(
+                        _ing.get_onelake_token(tenant_id, client_id, client_secret),
+                        _ing.get_fabric_token(tenant_id, client_id, client_secret),
+                    )
+                except Exception as e:
+                    yield _evt({"type": "error", "message": f"Erro de autenticação: {e}"})
+                    return
+                yield _evt({"type": "progress", "step": "auth",
+                            "message": "✓ Tokens obtidos"})
+
+                yield _evt({"type": "progress", "step": "upload",
+                            "message": f"Fazendo upload para OneLake → {file_path}..."})
+                try:
+                    await _ing.upload_to_onelake(
+                        onelake_token, workspace_id, lakehouse_id, file_path, parquet_bytes
+                    )
+                except Exception as e:
+                    yield _evt({"type": "error", "message": f"Erro no upload: {e}"})
+                    return
+                yield _evt({"type": "progress", "step": "upload",
+                            "message": "✓ Upload concluído"})
+
+                yield _evt({"type": "progress", "step": "table",
+                            "message": f"Registrando tabela '{safe_name}' no Lakehouse..."})
+                try:
+                    op_id = await _ing.load_table(
+                        fabric_token, workspace_id, lakehouse_id, safe_name, file_path
+                    )
+                except Exception as e:
+                    yield _evt({"type": "error", "message": f"Erro ao registrar tabela: {e}"})
+                    return
+
+                if op_id:
+                    yield _evt({"type": "progress", "step": "table",
+                                "message": "Aguardando Fabric processar a tabela..."})
+                    status = await _ing.poll_operation(fabric_token, op_id)
+                    if status != "Succeeded":
+                        yield _evt({"type": "error",
+                                    "message": f"Fabric retornou status '{status}'"})
+                        return
+
+                yield _evt({"type": "progress", "step": "table",
+                            "message": f"✓ Tabela '{safe_name}' disponível no Lakehouse"})
+                import datetime as _dt
+                yield _evt({
+                    "type": "done", "destination": "fabric",
+                    "table": safe_name, "rows": row_count, "columns": columns,
+                    "workspace_id": workspace_id, "lakehouse_id": lakehouse_id,
+                    "finished_at": _dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                })
+            else:
+                yield _evt({"type": "error", "message": f"Destino desconhecido: {destination}"})
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            yield _evt({"type": "error", "message": f"Erro inesperado: {e}"})
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+# ── Data Maturity Assessment ──────────────────────────────────────────────────
+
+class DataMaturityRequest(BaseModel):
+    governanca: str = ""
+    arquitetura: str = ""
+    modelagem: str = ""
+    armazenamento: str = ""
+    seguranca: str = ""
+    integracao: str = ""
+    metadados: str = ""
+    qualidade: str = ""
+    bi: str = ""
+
+
+@app.post("/api/data-maturity/analyze")
+async def data_maturity_analyze(req: DataMaturityRequest):
+    from ai import analyze_data_maturity
+
+    def _evt(payload: dict) -> str:
+        return f"data: {_json.dumps(payload, ensure_ascii=False)}\n\n"
+
+    async def event_stream():
+        try:
+            yield _evt({"type": "analysis_start"})
+            async for chunk in analyze_data_maturity(req.model_dump()):
+                yield _evt({"type": "analysis_chunk", "text": chunk})
+            yield _evt({"type": "done"})
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            yield _evt({"type": "error", "message": f"Erro inesperado: {e}"})
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 if __name__ == "__main__":
